@@ -23,6 +23,16 @@ pnpm dev
 
 Abra [http://localhost:3000](http://localhost:3000). O idioma padrão é português (`/br`); a versão em inglês está em `/us`.
 
+## Criar componentes
+
+Gere um componente em `src/components` com arquivo de implementação, teste e exportação:
+
+```bash
+pnpm create:component NomeDoComponente
+```
+
+O nome deve estar em PascalCase e conter apenas letras e números. O comando não sobrescreve uma pasta de componente existente.
+
 ## Testes e verificações
 
 ```bash
