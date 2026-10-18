@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560">
+  <defs>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5a5a5a"/>
+      <stop offset="100%" stop-color="#333333"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="560" fill="url(#g2)"/>
+  <!-- decorative circles -->
+  <circle cx="400" cy="190" r="100" fill="none" stroke="#cfcfcf" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="400" cy="190" r="75"  fill="none" stroke="#cfcfcf" stroke-width="1"   opacity="0.25"/>
+  <circle cx="400" cy="190" r="50"  fill="#cfcfcf" opacity="0.12"/>
+  <!-- gem icon -->
+  <polygon points="400,130 440,170 420,210 380,210 360,170" fill="none" stroke="#e8e8e8" stroke-width="2" opacity="0.7"/>
+  <polygon points="400,138 432,172 414,206 386,206 368,172" fill="#e8e8e8" opacity="0.15"/>
+  <!-- text block — bottom edge at ~450 leaves 80px clear -->
+  <text x="400" y="315" font-family="Georgia, serif" font-size="13" fill="#e8e8e8" opacity="0.85" text-anchor="middle" letter-spacing="8">NOVA COLEÇÃO</text>
+  <text x="400" y="368" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="2">TURQUESA</text>
+  <text x="400" y="405" font-family="Georgia, serif" font-size="14" fill="#e8e8e8" opacity="0.7" text-anchor="middle">Pedras naturais selecionadas</text>
+  <rect x="350" y="422" width="100" height="34" rx="4" fill="#ffffff" opacity="0.18" stroke="#e8e8e8" stroke-width="1"/>
+  <text x="400" y="444" font-family="Arial, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" letter-spacing="2">VER COLEÇÃO</text>
+</svg>

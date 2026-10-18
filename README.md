@@ -28,10 +28,28 @@ Abra [http://localhost:3000](http://localhost:3000). O idioma padrão é portugu
 Tailwind CSS está disponível nos componentes e páginas da aplicação por meio das classes utilitárias:
 
 ```tsx
-<div className="flex items-center gap-4 p-4">
-  Conteúdo
-</div>
+<div className="flex items-center gap-4 p-4">Conteúdo</div>
 ```
+
+## Tema e identidade visual
+
+A identidade visual padrão é uma paleta neutra em escala de cinza (preto, branco e tons de cinza), definida por variáveis CSS em `src/styles/globals.css` e exposta ao Tailwind via `@theme inline`. Todas as cores usam `oklch` com crominância zero (chroma = 0), o que mantém um cinza harmonioso e consistente entre os modos claro e escuro.
+
+### Tokens principais
+
+| Token                             | Modo claro                | Modo escuro                | Uso                                 |
+| --------------------------------- | ------------------------- | -------------------------- | ----------------------------------- |
+| `--background`                    | branco                    | preto                      | Fundo da página                     |
+| `--foreground`                    | preto                     | branco                     | Texto base                          |
+| `--primary`                       | quase preto               | quase branco               | Ações primárias                     |
+| `--muted` / `--muted-foreground`  | cinza claro / cinza médio | cinza escuro / cinza claro | Áreas de repouso e texto secundário |
+| `--border` / `--input` / `--ring` | cinza claro               | branco 10–15%              | Bordas, campos e foco               |
+
+Para trocar a paleta, edite os valores em `:root` (modo claro) e `.dark` (modo escuro) em `src/styles/globals.css`. Mantenha a crominância em `0` para preservar a estética em escala de cinza, ou aumente o valor do chroma para introduzir cores de marca.
+
+### Hero
+
+O carrossel do hero (`src/components/HeroCarousel`) usa os tokens de tema (`bg-muted`, `bg-background`, `text-foreground`) e os slides em `public/hero-slide-*.svg` seguem a mesma paleta neutra. O autoplay avança a cada 5 segundos (`autoplayDelay`, com `stopOnInteraction: false`) e o layout é de um slide único em tela cheia, responsivo para mobile e resoluções maiores (altura entre `420px` e `600px`, baseada em `60svh`).
 
 ## Criar componentes
 
