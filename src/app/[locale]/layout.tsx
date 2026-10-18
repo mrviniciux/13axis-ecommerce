@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { Montserrat } from 'next/font/google';
 
+// @ts-expect-error CSS imports are handled by Next.js.
 import '../../styles/globals.css';
 import Navbar from '@/components/Navbar';
 
