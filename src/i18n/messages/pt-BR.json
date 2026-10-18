@@ -1,3 +1,22 @@
 {
-  "welcome": "Bem vindo"
+  "welcome": "Bem vindo",
+  "navbar": {
+    "home": "Página inicial",
+    "logoAlt": "Logo da empresa",
+    "search": "O que deseja procurar?",
+    "quickLinks": "Links rápidos",
+    "support": "Atendimento",
+    "contactTitle": "Fale conosco",
+    "contact": "WhatsApp: 48 9 9999-9999",
+    "tracking": "Rastrear pedido",
+    "account": "Minha Conta",
+    "cart": "Carrinho, {quantity} itens",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "mainMenu": "Menu principal",
+    "promotion": "PAGANDO COM PIX VOCÊ GANHA 10% EM DESCONTO",
+    "language": "Idioma",
+    "portuguese": "Português",
+    "english": "Inglês"
+  }
 }

@@ -1,3 +1,22 @@
 {
-  "welcome": "Welcome"
+  "welcome": "Welcome",
+  "navbar": {
+    "home": "Home",
+    "logoAlt": "Company logo",
+    "search": "What are you looking for?",
+    "quickLinks": "Quick links",
+    "support": "Customer service",
+    "contactTitle": "Contact us",
+    "contact": "WhatsApp: +55 48 9 9999-9999",
+    "tracking": "Track order",
+    "account": "My Account",
+    "cart": "Cart, {quantity} items",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainMenu": "Main menu",
+    "promotion": "PAY WITH PIX AND GET 10% OFF",
+    "language": "Language",
+    "portuguese": "Portuguese",
+    "english": "English"
+  }
 }

@@ -3,7 +3,6 @@ import { getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { Montserrat } from 'next/font/google';
 
-// @ts-expect-error CSS imports are handled by Next.js.
 import '../../styles/globals.css';
 import Navbar from '@/components/Navbar';
 
@@ -26,8 +25,8 @@ export default async function RootLayout({ children, params }: AppPageProps) {
   return (
     <html lang={locale} className={montserrat.variable}>
       <body>
-        <Navbar />
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <Navbar />
           {children}
         </NextIntlClientProvider>
       </body>

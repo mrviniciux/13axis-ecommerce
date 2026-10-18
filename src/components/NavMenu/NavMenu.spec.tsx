@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import NavMenu from './NavMenu';
 
-test('renders its children', () => {
-  render(<NavMenu>NavMenu content</NavMenu>);
+test('renders its children when opened', async () => {
+  const user = userEvent.setup();
+  render(<NavMenu title="Menu">NavMenu content</NavMenu>);
 
-  expect(screen.getByText('NavMenu content')).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: /Menu/ }));
+
+  expect(await screen.findByText('NavMenu content')).toBeInTheDocument();
 });
