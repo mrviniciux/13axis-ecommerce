@@ -23,6 +23,16 @@ pnpm dev
 
 Abra [http://localhost:3000](http://localhost:3000). O idioma padrão é português (`/br`); a versão em inglês está em `/us`.
 
+## Estilos com Tailwind CSS
+
+Tailwind CSS está disponível nos componentes e páginas da aplicação por meio das classes utilitárias:
+
+```tsx
+<div className="flex items-center gap-4 p-4">
+  Conteúdo
+</div>
+```
+
 ## Criar componentes
 
 Gere um componente em `src/components` com arquivo de implementação, teste e exportação:

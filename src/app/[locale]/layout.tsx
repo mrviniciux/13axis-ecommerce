@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 
 import '../../styles/globals.css';
+import Navbar from '@/components/Navbar';
 
 type AppPageProps = {
   children: ReactNode;
@@ -16,6 +17,7 @@ export default async function RootLayout({ children, params }: AppPageProps) {
   return (
     <html lang={locale}>
       <body>
+        <Navbar />
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>
