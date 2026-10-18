@@ -84,6 +84,7 @@ function CartButton({ quantity, onClick, compact = false }: CartButtonProps) {
 }
 
 function Navbar() {
+  // TODO: Implement real cart behavior; this count is currently UI-only.
   const [quantity, setQuantity] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
