@@ -3,73 +3,8 @@
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-
-const products = [
-  {
-    id: 'essential-cotton',
-    image:
-      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80',
-    price: 79.9,
-    color: 'white',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 'classic-black',
-    image:
-      'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80',
-    price: 89.9,
-    color: 'black',
-    sizes: ['P', 'M', 'G'],
-  },
-  {
-    id: 'oversized-graphite',
-    image:
-      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80',
-    price: 119.9,
-    color: 'gray',
-    sizes: ['M', 'G', 'GG'],
-  },
-  {
-    id: 'soft-pink',
-    image:
-      'https://images.pexels.com/photos/6311392/pexels-photo-6311392.jpeg?auto=compress&cs=tinysrgb&w=800',
-    price: 94.9,
-    color: 'pink',
-    sizes: ['P', 'M', 'G'],
-  },
-  {
-    id: 'navy-basic',
-    image:
-      'https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=800&q=80',
-    price: 84.9,
-    color: 'blue',
-    sizes: ['P', 'M', 'G', 'GG'],
-  },
-  {
-    id: 'earthy-green',
-    image:
-      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80',
-    price: 99.9,
-    color: 'green',
-    sizes: ['M', 'G', 'GG'],
-  },
-  {
-    id: 'everyday-white',
-    image:
-      'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=800&q=80',
-    price: 69.9,
-    color: 'white',
-    sizes: ['P', 'M', 'G'],
-  },
-  {
-    id: 'urban-black',
-    image:
-      'https://images.unsplash.com/photo-1627225924765-552d49cf47ad?auto=format&fit=crop&w=800&q=80',
-    price: 109.9,
-    color: 'black',
-    sizes: ['M', 'G', 'GG'],
-  },
-] as const;
+import { products } from '@/lib/products';
+import { Link } from '@/i18n/routing';
 
 const colors = ['black', 'blue', 'gray', 'green', 'pink', 'white'] as const;
 const sizes = ['P', 'M', 'G', 'GG'] as const;
@@ -274,30 +209,38 @@ function ProductListing() {
                   key={product.id}
                   className="overflow-hidden rounded-lg border border-border bg-background transition-shadow hover:shadow-md"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-muted">
-                    <Image
-                      src={product.image}
-                      alt={t('imageAlt', { name: t(`items.${product.id}`) })}
-                      fill
-                      sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 240px"
-                      className="object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-3 sm:p-4">
-                    <h2 className="line-clamp-2 min-h-10 text-sm font-medium leading-5 sm:text-base">
-                      {t(`items.${product.id}`)}
-                    </h2>
-                    <p className="mt-2 text-base font-semibold sm:text-lg">
-                      {currency.format(product.price)}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t(`colors.${product.color}`)}
-                      <span aria-hidden="true"> · </span>
-                      {t('availableSizes', {
-                        sizes: product.sizes.join(', '),
-                      })}
-                    </p>
-                  </div>
+                  <Link
+                    href={{
+                      pathname: '/products/[productId]',
+                      params: { productId: product.id },
+                    }}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+                      <Image
+                        src={product.image}
+                        alt={t('imageAlt', { name: t(`items.${product.id}`) })}
+                        fill
+                        sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 240px"
+                        className="object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-3 sm:p-4">
+                      <h2 className="line-clamp-2 min-h-10 text-sm font-medium leading-5 sm:text-base">
+                        {t(`items.${product.id}`)}
+                      </h2>
+                      <p className="mt-2 text-base font-semibold sm:text-lg">
+                        {currency.format(product.price)}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {t(`colors.${product.color}`)}
+                        <span aria-hidden="true"> · </span>
+                        {t('availableSizes', {
+                          sizes: product.sizes.join(', '),
+                        })}
+                      </p>
+                    </div>
+                  </Link>
                 </article>
               ))}
             </div>

@@ -23,6 +23,9 @@ describe('ProductListing', () => {
       screen.getByRole('group', { name: 'Preço (R$)' })
     ).toBeInTheDocument();
     expect(screen.queryByText('Marca')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /Camiseta Essential de algodão/ })
+    ).toHaveAttribute('href', '/br/produtos/essential-cotton');
   });
 
   it('filters by color, size, and price together', () => {

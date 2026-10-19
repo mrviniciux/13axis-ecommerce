@@ -12,6 +12,7 @@ export const routing = defineRouting({
     },
   },
   pathnames: {
+    '/': '/',
     '/loja': '/shop',
     '/shop': {
       'pt-BR': '/loja',
@@ -20,6 +21,10 @@ export const routing = defineRouting({
     '/cart': {
       'pt-BR': '/loja',
       'en-US': '/cart',
+    },
+    '/products/[productId]': {
+      'pt-BR': '/produtos/[productId]',
+      'en-US': '/products/[productId]',
     },
   },
 });

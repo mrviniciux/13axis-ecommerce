@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { usePathname, useRouter } from '@/i18n/routing';
 import enUS from '@/i18n/messages/en-US.json';
 import ptBR from '@/i18n/messages/pt-BR.json';
+import { useCartStore } from '@/lib/cart-store';
 import Navbar from './Navbar';
 
 jest.mock('@/i18n/routing', () => ({
@@ -109,6 +110,7 @@ function renderNavbar(locale: 'pt-BR' | 'en-US' = 'pt-BR') {
 describe('Navbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useCartStore.setState({ quantity: 0 });
     (usePathname as jest.Mock).mockReturnValue('/shop');
     (useRouter as jest.Mock).mockReturnValue({ replace });
   });

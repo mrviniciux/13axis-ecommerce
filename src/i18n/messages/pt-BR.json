@@ -32,6 +32,25 @@
       "earthy-green": "Camiseta casual verde",
       "everyday-white": "Camiseta branca everyday",
       "urban-black": "Camiseta urbana preta"
+    },
+    "detail": {
+      "breadcrumbLabel": "Navegação estrutural",
+      "backToProducts": "Voltar aos produtos",
+      "category": "Camisetas",
+      "galleryLabel": "Imagens de {name}",
+      "imageOption": "Ver imagem {number}",
+      "priceDisclaimer": "Preço por unidade",
+      "color": "Cor",
+      "chooseSize": "Selecione o tamanho",
+      "selectedSize": "(selecionado: {size})",
+      "sizeRequired": "Selecione um tamanho para continuar.",
+      "addToCart": "Adicionar ao carrinho",
+      "addedToCart": "Produto adicionado ao carrinho.",
+      "characteristics": "Características do produto",
+      "availableSizesLabel": "Tamanhos disponíveis",
+      "description": "Descrição",
+      "descriptionText": "{name}: uma opção versátil para compor diferentes combinações. Confira a cor e os tamanhos disponíveis antes de adicionar ao carrinho.",
+      "relatedProducts": "Produtos relacionados"
     }
   },
   "benefits": {

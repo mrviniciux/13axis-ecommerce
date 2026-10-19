@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, type ComponentProps } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
 import {
   CircleHelp,
   CircleUserRound,
@@ -29,6 +30,7 @@ import { ListItem } from '@/components/NavMenu/NavMenu';
 import { Button } from '../ui/button';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/components/ThemeProvider';
+import { useCartStore } from '@/lib/cart-store';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -271,11 +273,23 @@ function Navbar() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const [quantity, setQuantity] = useState(0); // TODO: real cart state
+  const params = useParams<{ productId: string }>();
+  const quantity = useCartStore((state) => state.quantity);
+  const addItem = useCartStore((state) => state.addItem);
   const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLocaleChange(value: string | null) {
     if (value && isLocaleOption(value)) {
+      if (pathname === '/products/[productId]') {
+        router.replace(
+          {
+            pathname: '/products/[productId]',
+            params: { productId: params.productId },
+          },
+          { locale: value }
+        );
+        return;
+      }
       router.replace(pathname, { locale: value });
     }
   }
@@ -355,7 +369,7 @@ function Navbar() {
             <CartButton
               quantity={quantity}
               label={t('cart', { quantity })}
-              onClick={() => setQuantity((prev) => prev + 1)}
+              onClick={addItem}
             />
           </nav>
         </div>
@@ -423,7 +437,7 @@ function Navbar() {
           <CartButton
             quantity={quantity}
             label={t('cart', { quantity })}
-            onClick={() => setQuantity((prev) => prev + 1)}
+            onClick={addItem}
             compact
           />
           <OverflowMenu
@@ -468,7 +482,7 @@ function Navbar() {
         <CartButton
           quantity={quantity}
           label={t('cart', { quantity })}
-          onClick={() => setQuantity((prev) => prev + 1)}
+          onClick={addItem}
           compact
         />
       </div>

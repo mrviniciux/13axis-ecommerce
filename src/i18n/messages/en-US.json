@@ -32,6 +32,25 @@
       "earthy-green": "Casual green t-shirt",
       "everyday-white": "Everyday white t-shirt",
       "urban-black": "Urban black t-shirt"
+    },
+    "detail": {
+      "breadcrumbLabel": "Breadcrumb",
+      "backToProducts": "Back to products",
+      "category": "T-shirts",
+      "galleryLabel": "Images of {name}",
+      "imageOption": "View image {number}",
+      "priceDisclaimer": "Price per item",
+      "color": "Color",
+      "chooseSize": "Choose a size",
+      "selectedSize": "(selected: {size})",
+      "sizeRequired": "Choose a size to continue.",
+      "addToCart": "Add to cart",
+      "addedToCart": "Product added to cart.",
+      "characteristics": "Product details",
+      "availableSizesLabel": "Available sizes",
+      "description": "Description",
+      "descriptionText": "{name}: a versatile option for creating different outfits. Check the color and available sizes before adding it to your cart.",
+      "relatedProducts": "Related products"
     }
   },
   "benefits": {
