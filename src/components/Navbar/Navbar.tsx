@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, type ComponentProps } from 'react';
+import { useState, useRef, useEffect, type ComponentProps } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   CircleHelp,
   CircleUserRound,
   type LucideIcon,
   Menu,
+  MoreVertical,
   Search,
   ShoppingCart,
   Truck,
@@ -26,6 +27,10 @@ import {
 import NavMenu from '@/components/NavMenu';
 import { ListItem } from '@/components/NavMenu/NavMenu';
 import { Button } from '../ui/button';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useTheme } from '@/components/ThemeProvider';
+
+// ─── Data ────────────────────────────────────────────────────────────────────
 
 const quickLinks: {
   id: string;
@@ -47,6 +52,8 @@ type LocaleOption = (typeof localeOptions)[number]['value'];
 function isLocaleOption(value: string): value is LocaleOption {
   return localeOptions.some((option) => option.value === value);
 }
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 type QuickLinkContentProps = {
   icon: LucideIcon;
@@ -73,19 +80,27 @@ function BrandLink({
   className,
   homeLabel,
   logoAlt,
+  compact = false,
 }: {
   className?: string;
   homeLabel: string;
   logoAlt: string;
+  compact?: boolean;
 }) {
+  const { resolvedTheme } = useTheme();
+  const logoSrc =
+    resolvedTheme === 'dark'
+      ? '/emblema-sem-fundo-branco.png'
+      : '/emblema-sem-fundo-preto.png';
+
   return (
     <Link href="/" aria-label={homeLabel} className={className}>
       <Image
-        src="/logo.png"
+        src={logoSrc}
         alt={logoAlt}
         width={80}
         height={80}
-        className="h-20 w-auto"
+        className={compact ? 'h-10 w-auto' : 'h-16 w-auto'}
       />
     </Link>
   );
@@ -112,10 +127,13 @@ function CartButton({
       onClick={onClick}
       aria-label={label}
     >
-      <ShoppingCart aria-hidden="true" className="size-7" />
+      <ShoppingCart
+        aria-hidden="true"
+        className={compact ? 'size-5' : 'size-6'}
+      />
       <span
-        className={`absolute -top-0.5 -right-1 flex items-center justify-center rounded-full bg-neutral-800 font-semibold text-white ${
-          compact ? 'size-5 text-[10px]' : 'size-6 text-xs'
+        className={`absolute -top-0.5 -right-1 flex items-center justify-center rounded-full bg-foreground font-semibold text-background ${
+          compact ? 'size-4 text-[9px]' : 'size-5 text-[10px]'
         }`}
       >
         {quantity}
@@ -144,10 +162,7 @@ function LanguageSelect({
       <SelectTrigger aria-label={label} className={className}>
         <SelectValue>
           {(value: string | null) => {
-            const selectedOption = options.find(
-              (option) => option.value === value
-            );
-
+            const selectedOption = options.find((o) => o.value === value);
             return selectedOption ? (
               <>
                 <span aria-hidden="true">{selectedOption.flag}</span>
@@ -174,13 +189,89 @@ function LanguageSelect({
   );
 }
 
+/**
+ * Compact overflow menu used in the tablet breakpoint (md–lg).
+ * Shows theme toggle + language selector in a floating panel.
+ */
+function OverflowMenu({
+  t,
+  locale,
+  languageOptions,
+  onLocaleChange,
+}: {
+  t: ReturnType<typeof useTranslations<'navbar'>>;
+  locale: string;
+  languageOptions: { value: LocaleOption; label: string; flag: string }[];
+  onLocaleChange: (v: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={t('moreOptions')}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <MoreVertical aria-hidden="true" className="size-5" />
+      </Button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-border bg-background p-3 shadow-lg">
+          {/* Theme row */}
+          <div className="flex items-center justify-between gap-2 pb-2 border-b border-border mb-2">
+            <span className="text-sm text-muted-foreground">{t('theme')}</span>
+            <ThemeToggle
+              variant="icon"
+              lightLabel={t('themeLight')}
+              darkLabel={t('themeDark')}
+            />
+          </div>
+          {/* Language */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm text-muted-foreground">
+              {t('language')}
+            </span>
+            <LanguageSelect
+              locale={locale}
+              label={t('language')}
+              options={languageOptions}
+              onValueChange={(v) => {
+                onLocaleChange(v);
+                setOpen(false);
+              }}
+              className="w-24"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Navbar ──────────────────────────────────────────────────────────────────
+
 function Navbar() {
   const t = useTranslations('navbar');
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  // TODO: Implement real cart behavior; this count is currently UI-only.
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(0); // TODO: real cart state
   const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLocaleChange(value: string | null) {
@@ -196,31 +287,31 @@ function Navbar() {
   }));
 
   return (
-    <header className="relative w-full bg-white text-neutral-800">
-      <div className="hidden h-[104px] items-center lg:flex">
-        <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-[var(--navbar-inline-spacing)]">
-          <BrandLink
-            className="shrink-0"
-            homeLabel={t('home')}
-            logoAlt={t('logoAlt')}
-          />
+    <header className="relative w-full bg-background text-foreground">
+      {/* ══════════════════════════════════════════════════════════════
+          DESKTOP  lg+
+          logo | search | quicklinks | theme | language | cart
+          ══════════════════════════════════════════════════════════════ */}
+      <div className="hidden h-[88px] items-center lg:flex">
+        <div className="mx-auto flex w-full max-w-[1440px] items-center gap-6 px-[var(--navbar-inline-spacing)]">
+          <BrandLink homeLabel={t('home')} logoAlt={t('logoAlt')} />
 
-          <div className="relative w-[min(28vw,400px)] shrink-0">
+          <div className="relative min-w-0 flex-1 max-w-[400px]">
             <Input
               type="search"
               placeholder={t('search')}
               aria-label={t('search')}
-              className="h-14 rounded-lg border-neutral-200 bg-white pl-8 pr-12 text-base shadow-sm placeholder:text-neutral-500"
+              className="h-11 rounded-lg pl-4 pr-10 text-sm shadow-sm"
             />
             <Search
               aria-hidden="true"
-              className="absolute top-1/2 right-4 size-5 -translate-y-1/2"
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
             />
           </div>
 
           <nav
             aria-label={t('quickLinks')}
-            className="flex w-[min(52vw,760px)] items-center justify-between gap-4 xl:gap-8"
+            className="flex shrink-0 items-center gap-5 xl:gap-7"
           >
             {quickLinks.map(({ id, label, icon }) =>
               id === 'support' ? (
@@ -231,7 +322,7 @@ function Navbar() {
                       icon={icon}
                       label={t(label)}
                       className="gap-2 text-sm font-normal"
-                      iconClassName="size-6"
+                      iconClassName="size-5"
                     />
                   }
                 >
@@ -245,14 +336,15 @@ function Navbar() {
                   icon={icon}
                   label={t(label)}
                   className="whitespace-nowrap text-sm"
-                  iconClassName="size-7 shrink-0"
+                  iconClassName="size-5 shrink-0"
                 />
               )
             )}
-            <CartButton
-              quantity={quantity}
-              label={t('cart', { quantity })}
-              onClick={() => setQuantity((prev) => prev + 1)}
+
+            <ThemeToggle
+              variant="icon"
+              lightLabel={t('themeLight')}
+              darkLabel={t('themeDark')}
             />
             <LanguageSelect
               locale={locale}
@@ -260,15 +352,98 @@ function Navbar() {
               options={languageOptions}
               onValueChange={handleLocaleChange}
             />
+            <CartButton
+              quantity={quantity}
+              label={t('cart', { quantity })}
+              onClick={() => setQuantity((prev) => prev + 1)}
+            />
           </nav>
         </div>
       </div>
 
-      <div className="flex h-8 items-center justify-center bg-neutral-500 px-2 text-center text-[11px] font-semibold tracking-wide text-white lg:hidden">
+      {/* ══════════════════════════════════════════════════════════════
+          TABLET  md – lg
+          logo | search | quicklinks | cart | overflow(theme+lang)
+          ══════════════════════════════════════════════════════════════ */}
+      <div className="hidden h-16 items-center border-b border-border px-4 md:flex lg:hidden">
+        <BrandLink
+          homeLabel={t('home')}
+          logoAlt={t('logoAlt')}
+          compact
+          className="shrink-0 mr-4"
+        />
+
+        <div className="relative min-w-0 flex-1 max-w-[320px] mr-4">
+          <Input
+            type="search"
+            placeholder={t('search')}
+            aria-label={t('search')}
+            className="h-9 rounded-lg pl-4 pr-9 text-sm"
+          />
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+        </div>
+
+        <nav
+          aria-label={t('quickLinks')}
+          className="flex shrink-0 items-center gap-3 mr-auto"
+        >
+          {quickLinks.map(({ id, label, icon }) =>
+            id === 'support' ? (
+              <NavMenu
+                key={id}
+                title={
+                  <QuickLinkContent
+                    icon={icon}
+                    label={t(label)}
+                    className="gap-1.5 text-sm font-normal"
+                    iconClassName="size-4"
+                  />
+                }
+              >
+                <ListItem href="/docs" title={t('contactTitle')}>
+                  {t('contact')}
+                </ListItem>
+              </NavMenu>
+            ) : (
+              <QuickLinkContent
+                key={id}
+                icon={icon}
+                label={t(label)}
+                className="whitespace-nowrap text-sm"
+                iconClassName="size-4 shrink-0"
+              />
+            )
+          )}
+        </nav>
+
+        <div className="flex shrink-0 items-center gap-1 ml-3">
+          <CartButton
+            quantity={quantity}
+            label={t('cart', { quantity })}
+            onClick={() => setQuantity((prev) => prev + 1)}
+            compact
+          />
+          <OverflowMenu
+            t={t}
+            locale={locale}
+            languageOptions={languageOptions}
+            onLocaleChange={handleLocaleChange}
+          />
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MOBILE  < md
+          promo bar | hamburger | logo | cart
+          ══════════════════════════════════════════════════════════════ */}
+      <div className="flex h-8 items-center justify-center bg-muted px-2 text-center text-[11px] font-semibold tracking-wide text-muted-foreground md:hidden">
         {t('promotion')}
       </div>
 
-      <div className="relative flex h-16 items-center justify-between border-b border-neutral-200 px-2.5 lg:hidden">
+      <div className="relative flex h-14 items-center justify-between border-b border-border px-2.5 md:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -277,9 +452,9 @@ function Navbar() {
           onClick={() => setMenuOpen((open) => !open)}
         >
           {menuOpen ? (
-            <X aria-hidden="true" className="size-6" />
+            <X aria-hidden="true" className="size-5" />
           ) : (
-            <Menu aria-hidden="true" className="size-6" />
+            <Menu aria-hidden="true" className="size-5" />
           )}
         </Button>
 
@@ -287,7 +462,9 @@ function Navbar() {
           className="absolute left-1/2 -translate-x-1/2"
           homeLabel={t('home')}
           logoAlt={t('logoAlt')}
+          compact
         />
+
         <CartButton
           quantity={quantity}
           label={t('cart', { quantity })}
@@ -296,10 +473,27 @@ function Navbar() {
         />
       </div>
 
+      {/* Search bar — mobile only, full width below the header row */}
+      <div className="border-b border-border px-3 py-2 md:hidden">
+        <div className="relative w-full">
+          <Input
+            type="search"
+            placeholder={t('search')}
+            aria-label={t('search')}
+            className="h-9 w-full rounded-lg pl-4 pr-9 text-sm"
+          />
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+        </div>
+      </div>
+
+      {/* Mobile slide-down menu */}
       {menuOpen && (
         <nav
           aria-label={t('mainMenu')}
-          className="absolute top-full left-0 z-50 w-full border-b border-neutral-200 bg-white px-4 py-3 shadow-md lg:hidden"
+          className="absolute top-full left-0 z-50 w-full border-b border-border bg-background px-4 py-3 shadow-md md:hidden"
         >
           {quickLinks.map(({ id, label, icon }, index) => (
             <QuickLinkContent
@@ -307,13 +501,19 @@ function Navbar() {
               icon={icon}
               label={t(label)}
               className={`py-3 text-sm ${
-                index < quickLinks.length - 1
-                  ? 'border-b border-neutral-100'
-                  : ''
+                index < quickLinks.length - 1 ? 'border-b border-border' : ''
               }`}
             />
           ))}
-          <div className="border-t border-neutral-100 pt-3">
+
+          <ThemeToggle
+            variant="row"
+            lightLabel={t('themeLight')}
+            darkLabel={t('themeDark')}
+            className="w-full border-b border-border"
+          />
+
+          <div className="border-t border-border pt-3">
             <span className="mb-2 block text-sm font-medium">
               {t('language')}
             </span>

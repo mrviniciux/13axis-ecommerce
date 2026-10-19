@@ -65,6 +65,10 @@
     "promotion": "PAGANDO COM PIX VOCÊ GANHA 10% EM DESCONTO",
     "language": "Idioma",
     "portuguese": "Português",
-    "english": "Inglês"
+    "english": "Inglês",
+    "themeLight": "Mudar para modo claro",
+    "themeDark": "Mudar para modo escuro",
+    "theme": "Tema",
+    "moreOptions": "Mais opções"
   }
 }

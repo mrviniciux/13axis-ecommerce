@@ -62,6 +62,10 @@
     "promotion": "PAY WITH PIX AND GET 10% OFF",
     "language": "Language",
     "portuguese": "Portuguese",
-    "english": "English"
+    "english": "English",
+    "themeLight": "Switch to light mode",
+    "themeDark": "Switch to dark mode",
+    "theme": "Theme",
+    "moreOptions": "More options"
   }
 }

@@ -131,7 +131,7 @@ function ProductListing() {
   return (
     <section
       aria-labelledby="product-listing-title"
-      className="bg-neutral-50 px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
+      className="bg-muted/40 px-4 py-10 sm:px-6 lg:px-8 lg:py-14"
     >
       <div className="mx-auto max-w-7xl">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
@@ -158,7 +158,7 @@ function ProductListing() {
         <div className="grid items-start gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside
             aria-label={t('filters')}
-            className="rounded-lg border border-border bg-white p-5"
+            className="rounded-lg border border-border bg-background p-5"
           >
             <div className="mb-5 flex items-center justify-between gap-2">
               <h2 className="font-semibold">{t('filters')}</h2>
@@ -272,9 +272,9 @@ function ProductListing() {
               {filteredProducts.map((product) => (
                 <article
                   key={product.id}
-                  className="overflow-hidden rounded-lg border border-border bg-white transition-shadow hover:shadow-md"
+                  className="overflow-hidden rounded-lg border border-border bg-background transition-shadow hover:shadow-md"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-muted">
                     <Image
                       src={product.image}
                       alt={t('imageAlt', { name: t(`items.${product.id}`) })}
@@ -302,7 +302,7 @@ function ProductListing() {
               ))}
             </div>
           ) : (
-            <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed border-border bg-white p-6 text-center">
+            <div className="flex min-h-56 items-center justify-center rounded-lg border border-dashed border-border bg-background p-6 text-center">
               <div>
                 <h2 className="font-medium">{t('emptyTitle')}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
