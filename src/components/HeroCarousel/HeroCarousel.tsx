@@ -11,6 +11,10 @@ export type HeroSlide = {
   id: string;
   src: string;
   alt: string;
+  /** Native width of the artwork (px). Used to compute aspect ratio. */
+  width?: number;
+  /** Native height of the artwork (px). Used to compute aspect ratio. */
+  height?: number;
 };
 
 type HeroCarouselProps = {
@@ -24,16 +28,22 @@ const defaultSlides: HeroSlide[] = [
     id: 'slide-1',
     src: '/hero-slide-1.svg',
     alt: 'Coleção Navajo — joias e acessórios artesanais',
+    width: 800,
+    height: 560,
   },
   {
     id: 'slide-2',
     src: '/hero-slide-2.svg',
     alt: 'Nova coleção Turquesa — pedras naturais selecionadas',
+    width: 800,
+    height: 560,
   },
   {
     id: 'slide-3',
     src: '/hero-slide-3.svg',
     alt: 'Pulseiras com até 40% de desconto',
+    width: 800,
+    height: 560,
   },
 ];
 
@@ -82,22 +92,24 @@ function HeroCarousel({
 
   return (
     <section aria-label="Hero carousel" className="relative w-full bg-muted">
-      {/* Slide track — overflow hidden clips slides outside the viewport */}
+      {/* Slide track */}
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex" style={{ touchAction: 'pan-y pinch-zoom' }}>
           {slides.map((slide) => (
-            <div key={slide.id} className="relative shrink-0 basis-full">
+            <div key={slide.id} className="shrink-0 basis-full">
               {/*
-               * pb-10 reserves space so the dots (rendered below the track)
-               * never overlap the slide artwork. The image fills the whole
-               * box including the padding area via object-cover + fill.
+               * The outer div caps height on desktop (max-h-[520px]) while
+               * letting mobile expand freely. object-contain keeps the full
+               * SVG artwork visible without cropping at any viewport width.
+               * The bg-muted fill covers any letterbox areas on wide screens.
                */}
-              <div className="relative h-[70svh] w-full min-h-[480px] max-h-[680px] overflow-hidden pb-10">
+              <div className="w-full max-h-[520px] overflow-hidden bg-muted flex items-center justify-center">
                 <Image
                   src={slide.src}
                   alt={slide.alt}
-                  fill
-                  className="object-cover object-top"
+                  width={slide.width ?? 800}
+                  height={slide.height ?? 560}
+                  className="w-full h-auto max-h-[520px] object-contain block"
                   sizes="100vw"
                   priority={slide.id === slides[0].id}
                 />
@@ -107,31 +119,30 @@ function HeroCarousel({
         </div>
       </div>
 
-      {/* Prev button — centred on the slide area, not on the dot strip */}
+      {/* Prev / Next buttons — positioned relative to the section */}
       <Button
         variant="ghost"
         size="icon"
         aria-label="Slide anterior"
         onClick={scrollPrev}
         disabled={!canScrollPrev}
-        className="absolute top-[calc(50%-20px)] left-2 z-10 -translate-y-1/2 rounded-full bg-background/70 text-foreground shadow backdrop-blur-sm hover:bg-background disabled:opacity-30 md:left-4"
+        className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full bg-background/70 text-foreground shadow backdrop-blur-sm hover:bg-background disabled:opacity-30 md:left-4"
       >
         <ChevronLeft aria-hidden="true" className="size-5" />
       </Button>
 
-      {/* Next button */}
       <Button
         variant="ghost"
         size="icon"
         aria-label="Próximo slide"
         onClick={scrollNext}
         disabled={!canScrollNext}
-        className="absolute top-[calc(50%-20px)] right-2 z-10 -translate-y-1/2 rounded-full bg-background/70 text-foreground shadow backdrop-blur-sm hover:bg-background disabled:opacity-30 md:right-4"
+        className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full bg-background/70 text-foreground shadow backdrop-blur-sm hover:bg-background disabled:opacity-30 md:right-4"
       >
         <ChevronRight aria-hidden="true" className="size-5" />
       </Button>
 
-      {/* Dot indicators — outside the slide track so they never overlap content */}
+      {/* Dot indicators — below the slide, never overlapping artwork */}
       <div
         role="tablist"
         aria-label="Selecionar slide"

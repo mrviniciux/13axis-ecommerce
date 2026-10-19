@@ -1,5 +1,39 @@
 {
   "welcome": "Bem vindo",
+  "products": {
+    "eyebrow": "Seleção especial",
+    "title": "Camisetas para todos os dias",
+    "resultCount": "{count, plural, one {# produto} other {# produtos}}",
+    "filters": "Filtros",
+    "clearFilters": "Limpar",
+    "color": "Cor",
+    "size": "Tamanho",
+    "price": "Preço (R$)",
+    "minimumPrice": "Mínimo",
+    "maximumPrice": "Máximo",
+    "availableSizes": "Tamanhos: {sizes}",
+    "imageAlt": "Camiseta {name}",
+    "emptyTitle": "Nenhum produto encontrado",
+    "emptyDescription": "Tente alterar ou limpar os filtros selecionados.",
+    "colors": {
+      "black": "Preto",
+      "blue": "Azul-marinho",
+      "gray": "Cinza",
+      "green": "Verde",
+      "pink": "Rosa",
+      "white": "Branco"
+    },
+    "items": {
+      "essential-cotton": "Camiseta Essential de algodão",
+      "classic-black": "Camiseta clássica preta",
+      "oversized-graphite": "Camiseta oversized grafite",
+      "soft-pink": "Camiseta básica rosa",
+      "navy-basic": "Camiseta básica azul-marinho",
+      "earthy-green": "Camiseta casual verde",
+      "everyday-white": "Camiseta branca everyday",
+      "urban-black": "Camiseta urbana preta"
+    }
+  },
   "navbar": {
     "home": "Página inicial",
     "logoAlt": "Logo da empresa",

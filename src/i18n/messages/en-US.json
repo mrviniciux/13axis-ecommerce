@@ -1,5 +1,39 @@
 {
   "welcome": "Welcome",
+  "products": {
+    "eyebrow": "Curated selection",
+    "title": "T-shirts for every day",
+    "resultCount": "{count, plural, one {# product} other {# products}}",
+    "filters": "Filters",
+    "clearFilters": "Clear",
+    "color": "Color",
+    "size": "Size",
+    "price": "Price (R$)",
+    "minimumPrice": "Min",
+    "maximumPrice": "Max",
+    "availableSizes": "Sizes: {sizes}",
+    "imageAlt": "{name} t-shirt",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Try changing or clearing the selected filters.",
+    "colors": {
+      "black": "Black",
+      "blue": "Navy",
+      "gray": "Gray",
+      "green": "Green",
+      "pink": "Pink",
+      "white": "White"
+    },
+    "items": {
+      "essential-cotton": "Essential cotton t-shirt",
+      "classic-black": "Classic black t-shirt",
+      "oversized-graphite": "Graphite oversized t-shirt",
+      "soft-pink": "Pink everyday t-shirt",
+      "navy-basic": "Navy basic t-shirt",
+      "earthy-green": "Casual green t-shirt",
+      "everyday-white": "Everyday white t-shirt",
+      "urban-black": "Urban black t-shirt"
+    }
+  },
   "navbar": {
     "home": "Home",
     "logoAlt": "Company logo",
