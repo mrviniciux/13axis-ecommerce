@@ -34,6 +34,20 @@
       "urban-black": "Camiseta urbana preta"
     }
   },
+  "benefits": {
+    "label": "Benefícios da loja",
+    "shipping": { "title": "Frete Grátis", "subtitle": "Consulte" },
+    "discount": {
+      "title": "10% de Desconto",
+      "subtitle": "Pagamentos via PIX"
+    },
+    "delivery": { "title": "Envio", "subtitle": "Em até 24h Úteis" },
+    "installments": {
+      "title": "Pague em 12x com cartão",
+      "subtitle": "Até 5x com juros"
+    },
+    "security": { "title": "Segurança", "subtitle": "Loja Oficial" }
+  },
   "navbar": {
     "home": "Página inicial",
     "logoAlt": "Logo da empresa",

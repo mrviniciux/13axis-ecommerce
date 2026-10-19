@@ -34,6 +34,17 @@
       "urban-black": "Urban black t-shirt"
     }
   },
+  "benefits": {
+    "label": "Store benefits",
+    "shipping": { "title": "Free Shipping", "subtitle": "Check conditions" },
+    "discount": { "title": "10% Discount", "subtitle": "Pay with PIX" },
+    "delivery": { "title": "Dispatch", "subtitle": "Within 24 business hours" },
+    "installments": {
+      "title": "Pay in 12x",
+      "subtitle": "Up to 5x interest-free"
+    },
+    "security": { "title": "Security", "subtitle": "Official Store" }
+  },
   "navbar": {
     "home": "Home",
     "logoAlt": "Company logo",
