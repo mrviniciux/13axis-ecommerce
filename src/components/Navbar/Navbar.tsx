@@ -340,7 +340,10 @@ function Navbar() {
                     />
                   }
                 >
-                  <ListItem href="/docs" title={t('contactTitle')}>
+                  <ListItem
+                    href="https://wa.me/5548999999999"
+                    title={t('contactTitle')}
+                  >
                     {t('contact')}
                   </ListItem>
                 </NavMenu>
@@ -417,7 +420,10 @@ function Navbar() {
                   />
                 }
               >
-                <ListItem href="/docs" title={t('contactTitle')}>
+                <ListItem
+                  href="https://wa.me/5548999999999"
+                  title={t('contactTitle')}
+                >
                   {t('contact')}
                 </ListItem>
               </NavMenu>

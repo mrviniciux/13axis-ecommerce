@@ -140,6 +140,9 @@ describe('Navbar', () => {
     expect(
       await screen.findByText('WhatsApp: 48 9 9999-9999')
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /WhatsApp: 48 9 9999-9999/ })
+    ).toHaveAttribute('href', 'https://wa.me/5548999999999');
   });
 
   test('increments and displays the cart item count when clicked', () => {
