@@ -1,6 +1,9 @@
-# React 18 Next.js Template
+# 13axis Ecommerce
 
-Template de aplicação com React 18, Next.js 15, TypeScript, internacionalização com `next-intl`, Jest, Playwright, Storybook e Docker.
+A sample ecommerce application to sell t-shirts
+
+
+<img width="1072" height="932" alt="1" src="https://github.com/user-attachments/assets/a1923126-592a-4f89-94b9-f6bea49a8339" />
 
 ## Requisitos
 
