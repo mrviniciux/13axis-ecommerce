@@ -1,70 +1,104 @@
 # 13axis Ecommerce
 
-A sample ecommerce application to sell t-shirts
+A basic e-commerce storefront concept for learning and experimenting with modern
+web development. The project uses a small, local sample catalog of T-shirts to
+explore shopping journeys and, especially, Next.js concepts such as caching and
+the differences between Server and Client Components.
 
+<img width="1072" height="932" alt="Storefront screenshot" src="https://github.com/user-attachments/assets/a1923126-592a-4f89-94b9-f6bea49a8339" />
 
-<img width="1072" height="932" alt="1" src="https://github.com/user-attachments/assets/a1923126-592a-4f89-94b9-f6bea49a8339" />
+This is a learning project, not a production store. The catalog is hard-coded,
+and there is no product API, database, authentication, real cart persistence,
+checkout, payment processing, inventory, shipping, or order management. The
+cart counter is local demo state.
 
-## Requisitos
+## What You Can Explore
 
-- Node.js `20.17.0` (consulte `.nvmrc`)
+- Product discovery through a responsive storefront and filterable catalog.
+- Localized product detail pages with image, price, size selection, and related
+  products.
+- The Next.js App Router and localized routes.
+- Server and Client Component boundaries: route-level product lookup and
+  not-found handling are server-rendered, while interactive product selection
+  and the demo cart use client-side state.
+- Next.js rendering and caching behavior. Use this project to investigate how
+  route rendering, data sources, and caching strategies affect freshness and
+  performance. Since the current catalog is static local data, it does not
+  demonstrate fetching or caching data from a live backend.
+
+## Technology
+
+- Next.js 15 with the App Router
+- React 18 and TypeScript
+- `next-intl` for localization
+- Tailwind CSS 4
+- Jest and Testing Library
+- Playwright for end-to-end tests
+- pnpm
+
+## Requirements
+
+- Node.js `20.17.0` (see `.nvmrc`)
 - pnpm `9.15.9`
-- Docker e Docker Compose (opcional)
+- Docker and Docker Compose (optional)
 
-Instale a versão definida pelo projeto e as dependências:
+Install pnpm and the project dependencies:
 
 ```bash
 npm install --global pnpm@9.15.9
 pnpm install --frozen-lockfile
 ```
 
-## Desenvolvimento local
+## Local Development
 
 ```bash
 pnpm dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). O idioma padrão é português (`/br`); a versão em inglês está em `/us`.
+Open [http://localhost:3000](http://localhost:3000). Portuguese (Brazil) is the
+default locale at `/br`; English (United States) is available at `/us`.
 
-## Estilos com Tailwind CSS
+## Project Structure
 
-Tailwind CSS está disponível nos componentes e páginas da aplicação por meio das classes utilitárias:
+```text
+src/
+  app/[locale]/               Localized App Router pages and layouts
+  components/                 Shared UI and storefront components
+  i18n/                       Locale routing and translation messages
+  lib/                        Sample product data and demo cart state
+  styles/                     Global styles and theme tokens
+```
+
+## Styling and Theme
+
+Tailwind CSS utility classes are available throughout the application:
 
 ```tsx
-<div className="flex items-center gap-4 p-4">Conteúdo</div>
+<div className="flex items-center gap-4 p-4">Content</div>
 ```
 
-## Tema e identidade visual
+The default visual theme uses a neutral grayscale palette. Its CSS variables
+are defined in `src/styles/globals.css` and exposed to Tailwind through
+`@theme inline`. The `--background`, `--foreground`, `--primary`,
+`--muted`, `--border`, `--input`, and `--ring` tokens support light and dark
+themes. Update the values in `:root` and `.dark` to adjust the palette.
 
-A identidade visual padrão é uma paleta neutra em escala de cinza (preto, branco e tons de cinza), definida por variáveis CSS em `src/styles/globals.css` e exposta ao Tailwind via `@theme inline`. Todas as cores usam `oklch` com crominância zero (chroma = 0), o que mantém um cinza harmonioso e consistente entre os modos claro e escuro.
+The hero carousel uses the theme tokens and the slides in `public/hero-slide-*.svg`.
+It advances every five seconds and adapts to mobile and larger screens.
 
-### Tokens principais
+## Generate a Component
 
-| Token                             | Modo claro                | Modo escuro                | Uso                                 |
-| --------------------------------- | ------------------------- | -------------------------- | ----------------------------------- |
-| `--background`                    | branco                    | preto                      | Fundo da página                     |
-| `--foreground`                    | preto                     | branco                     | Texto base                          |
-| `--primary`                       | quase preto               | quase branco               | Ações primárias                     |
-| `--muted` / `--muted-foreground`  | cinza claro / cinza médio | cinza escuro / cinza claro | Áreas de repouso e texto secundário |
-| `--border` / `--input` / `--ring` | cinza claro               | branco 10–15%              | Bordas, campos e foco               |
-
-Para trocar a paleta, edite os valores em `:root` (modo claro) e `.dark` (modo escuro) em `src/styles/globals.css`. Mantenha a crominância em `0` para preservar a estética em escala de cinza, ou aumente o valor do chroma para introduzir cores de marca.
-
-### Hero
-
-O carrossel do hero (`src/components/HeroCarousel`) usa os tokens de tema (`bg-muted`, `bg-background`, `text-foreground`) e os slides em `public/hero-slide-*.svg` seguem a mesma paleta neutra. O autoplay avança a cada 5 segundos (`autoplayDelay`, com `stopOnInteraction: false`) e o layout é de um slide único em tela cheia, responsivo para mobile e resoluções maiores (altura entre `420px` e `600px`, baseada em `60svh`).
-
-## Criar componentes
-
-Gere um componente em `src/components` com arquivo de implementação, teste e exportação:
+Create a component in `src/components` with an implementation, test, and
+barrel export:
 
 ```bash
-pnpm create:component NomeDoComponente
+pnpm create:component ComponentName
 ```
 
-O nome deve estar em PascalCase e conter apenas letras e números. O comando não sobrescreve uma pasta de componente existente.
+Use PascalCase with letters and numbers. The generator does not overwrite an
+existing component directory.
 
-## Testes e verificações
+## Tests and Checks
 
 ```bash
 pnpm test
@@ -73,44 +107,56 @@ pnpm lint
 pnpm test:e2e
 ```
 
-O Playwright usa Chromium. Instale o navegador antes da primeira execução:
+Playwright uses Chromium. Install the browser before the first end-to-end test
+run:
 
 ```bash
 pnpm exec playwright install chromium
 ```
 
-## Build e execução de produção
+## Production Build
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-O build gera a saída otimizada do Next.js; a imagem Docker de produção usa a saída standalone. No Windows, o build local usa a saída padrão do Next.js para evitar a necessidade de permissões especiais para links simbólicos.
+The production build uses Next.js output optimized for deployment. The
+production Docker image uses standalone output. On Windows, the local build
+uses the default Next.js output to avoid requiring special symbolic-link
+permissions.
 
 ## Docker
 
-Para desenvolvimento com hot reload:
+Start the development environment with hot reload:
 
 ```bash
 docker compose up --build
 ```
 
-Para build e execução do container de produção:
+Build and run the production container:
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-Nos dois casos, a aplicação fica disponível em [http://localhost:3000](http://localhost:3000). Para parar o ambiente de produção, use `docker compose -f docker-compose.prod.yml down`.
+In either case, the application is available at
+[http://localhost:3000](http://localhost:3000). Stop the production environment
+with:
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
 
 ## Storybook
+
+Start the Storybook development server:
 
 ```bash
 pnpm storybook
 ```
 
-Para gerar a versão estática:
+Build the static Storybook:
 
 ```bash
 pnpm build-storybook
