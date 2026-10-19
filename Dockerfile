@@ -6,7 +6,8 @@ RUN npm install --global pnpm@9.15.9
 
 FROM base AS deps
 
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/storefront/package.json ./apps/storefront/package.json
 RUN pnpm install --frozen-lockfile --registry https://registry.npmjs.org
 
 FROM base AS builder
@@ -24,11 +25,11 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=node:node /app/.next/standalone ./
-COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder /app/apps/storefront/public ./apps/storefront/public
+COPY --from=builder --chown=node:node /app/apps/storefront/.next/standalone ./
+COPY --from=builder --chown=node:node /app/apps/storefront/.next/static ./apps/storefront/.next/static
 
 USER node
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/storefront/server.js"]

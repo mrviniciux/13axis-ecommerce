@@ -34,7 +34,7 @@ cart counter is local demo state.
 - Tailwind CSS 4
 - Jest and Testing Library
 - Playwright for end-to-end tests
-- pnpm
+- Nx monorepo with pnpm workspaces
 
 ## Requirements
 
@@ -42,7 +42,7 @@ cart counter is local demo state.
 - pnpm `9.15.9`
 - Docker and Docker Compose (optional)
 
-Install pnpm and the project dependencies:
+Install pnpm and the project dependencies from the repository root:
 
 ```bash
 npm install --global pnpm@9.15.9
@@ -51,6 +51,9 @@ pnpm install --frozen-lockfile
 
 ## Local Development
 
+The storefront is the `storefront` Nx project under `apps/storefront`. Start it
+from the repository root:
+
 ```bash
 pnpm dev
 ```
@@ -58,15 +61,32 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000). Portuguese (Brazil) is the
 default locale at `/br`; English (United States) is available at `/us`.
 
+You can also run an Nx target directly:
+
+```bash
+pnpm nx show projects
+pnpm nx run storefront:dev
+```
+
+Application targets are available as root shortcuts, including `pnpm build`,
+`pnpm start`, `pnpm test`, `pnpm lint`, and `pnpm typecheck`. Add future
+applications as separate projects under `apps/` (for example, an admin
+application) and define their Nx targets in their own `project.json`.
+
 ## Project Structure
 
 ```text
-src/
-  app/[locale]/               Localized App Router pages and layouts
-  components/                 Shared UI and storefront components
-  i18n/                       Locale routing and translation messages
-  lib/                        Sample product data and demo cart state
-  styles/                     Global styles and theme tokens
+apps/
+  storefront/
+    src/
+      app/[locale]/            Localized App Router pages and layouts
+      components/              Shared UI and storefront components
+      i18n/                    Locale routing and translation messages
+      lib/                     Sample product data and demo cart state
+      styles/                  Global styles and theme tokens
+    project.json               Nx targets for the storefront
+nx.json                        Shared Nx configuration
+pnpm-workspace.yaml            pnpm workspace definition
 ```
 
 ## Styling and Theme
@@ -78,18 +98,19 @@ Tailwind CSS utility classes are available throughout the application:
 ```
 
 The default visual theme uses a neutral grayscale palette. Its CSS variables
-are defined in `src/styles/globals.css` and exposed to Tailwind through
-`@theme inline`. The `--background`, `--foreground`, `--primary`,
+are defined in `apps/storefront/src/styles/globals.css` and exposed to Tailwind
+through `@theme inline`. The `--background`, `--foreground`, `--primary`,
 `--muted`, `--border`, `--input`, and `--ring` tokens support light and dark
 themes. Update the values in `:root` and `.dark` to adjust the palette.
 
-The hero carousel uses the theme tokens and the slides in `public/hero-slide-*.svg`.
-It advances every five seconds and adapts to mobile and larger screens.
+The hero carousel uses the theme tokens and the slides in
+`apps/storefront/public/hero-slide-*.svg`. It advances every five seconds and
+adapts to mobile and larger screens.
 
 ## Generate a Component
 
-Create a component in `src/components` with an implementation, test, and
-barrel export:
+Create a component in `apps/storefront/src/components` with an implementation,
+test, and barrel export:
 
 ```bash
 pnpm create:component ComponentName

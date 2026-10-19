@@ -1,12 +1,14 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { fileURLToPath } from 'node:url';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const workspaceRoot = fileURLToPath(new URL('../../', import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   output: process.platform === 'win32' ? undefined : 'standalone',
-  outputFileTracingRoot: process.cwd(),
+  outputFileTracingRoot: workspaceRoot,
   images: {
     remotePatterns: [
       {

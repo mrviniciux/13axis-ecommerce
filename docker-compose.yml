@@ -11,5 +11,6 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.next
-    command: ["pnpm", "dev", "--hostname", "0.0.0.0"]
+      - /app/apps/storefront/.next
+    working_dir: /app/apps/storefront
+    command: ["pnpm", "exec", "next", "dev", "--hostname", "0.0.0.0"]
