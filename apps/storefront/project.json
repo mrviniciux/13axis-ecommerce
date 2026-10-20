@@ -37,14 +37,16 @@
       "options": {
         "command": "eslint src e2e .storybook next.config.mjs jest.config.ts playwright.config.ts --ext .js,.jsx,.ts,.tsx,.mjs",
         "cwd": "apps/storefront"
-      }
+      },
+      "dependsOn": ["db:generate"]
     },
     "test": {
       "executor": "nx:run-commands",
       "options": {
         "command": "jest --config jest.config.ts",
         "cwd": "apps/storefront"
-      }
+      },
+      "dependsOn": ["db:generate"]
     },
     "test:watch": {
       "executor": "nx:run-commands",
@@ -52,7 +54,8 @@
         "command": "jest --config jest.config.ts --watch",
         "cwd": "apps/storefront"
       },
-      "cache": false
+      "cache": false,
+      "dependsOn": ["db:generate"]
     },
     "test:e2e": {
       "executor": "nx:run-commands",

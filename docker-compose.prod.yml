@@ -1,21 +1,20 @@
 services:
   db:
-    image: mysql:8.4
+    image: postgres:17-alpine
     environment:
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-axis_store}
-      MYSQL_USER: ${MYSQL_USER:-axis_admin}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Configure MYSQL_PASSWORD in .env}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Configure MYSQL_ROOT_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-axis_store}
+      POSTGRES_USER: ${POSTGRES_USER:-axis_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env}
     ports:
-      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 20
-      start_period: 20s
+      start_period: 10s
 
   migrate:
     build:
@@ -23,10 +22,18 @@ services:
       dockerfile: Dockerfile
       target: deps
     environment:
-      DATABASE_URL: mysql://${MYSQL_USER:-axis_admin}:${MYSQL_PASSWORD:?Configure MYSQL_PASSWORD in .env}@db:3306/${MYSQL_DATABASE:-axis_store}
-      DATABASE_PROVIDER: mysql
+      DATABASE_URL: postgresql://${POSTGRES_USER:-axis_admin}:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-axis_store}
     working_dir: /app/apps/storefront
-    command: ["pnpm", "exec", "prisma", "migrate", "deploy", "--schema", "prisma/mysql/schema.prisma"]
+    command:
+      [
+        "pnpm",
+        "exec",
+        "prisma",
+        "migrate",
+        "deploy",
+        "--schema",
+        "prisma/schema.prisma",
+      ]
     depends_on:
       db:
         condition: service_healthy
@@ -41,8 +48,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
-      DATABASE_URL: mysql://${MYSQL_USER:-axis_admin}:${MYSQL_PASSWORD:?Configure MYSQL_PASSWORD in .env}@db:3306/${MYSQL_DATABASE:-axis_store}
-      DATABASE_PROVIDER: mysql
+      DATABASE_URL: postgresql://${POSTGRES_USER:-axis_admin}:${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-axis_store}
       AUTH_SECRET: ${AUTH_SECRET:?Configure AUTH_SECRET in .env}
       ADMIN_EMAIL: ${ADMIN_EMAIL:?Configure ADMIN_EMAIL in .env}
       AUTH_TRUST_HOST: "true"
@@ -56,4 +62,4 @@ services:
         condition: service_completed_successfully
 
 volumes:
-  mysql_data:
+  postgres_data:

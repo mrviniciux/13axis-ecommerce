@@ -1,7 +1,8 @@
 Task completed. Summary of changes:
 - Updated ProductInventoryManager component to support image upload (with preview and removal), editing product details (including description), and inactivating/reactivating products.
-- Updated Prisma schema: changed image column type to LONGTEXT.
-- Added migration to alter image column to LONGTEXT.
+- Updated Prisma schema: the image column uses PostgreSQL `TEXT`.
+- The initial PostgreSQL migration creates the image column as `TEXT`.
+- Vercel deploys now run `db:migrate` and `db:seed` before the application build through `vercel-build`.
 - Updated admin product creation and update API routes to accept and store image as base64 data URL (with validation for JPEG, PNG, WebP up to 2MB).
 - Added API route to serve stored product images with versioning based on updatedAt to avoid caching issues.
 - Updated product listing and detail pages to use the new image serving route.

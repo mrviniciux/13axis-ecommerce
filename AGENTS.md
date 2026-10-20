@@ -13,6 +13,7 @@ Importante: trate esses itens como contexto de domínio, não como funcionalidad
 - `next-intl` fornece localização: português (`pt-BR`, prefixo `/br`) e inglês (`en-US`, prefixo `/us`). Mensagens ficam em `apps/storefront/src/i18n/messages`.
 - Componentes compartilhados ficam em `apps/storefront/src/components`; componentes de interface reutilizáveis ficam em `apps/storefront/src/components/ui`.
 - Tailwind CSS 4 é usado para estilos utilitários. Tokens e estilos globais ficam em `apps/storefront/src/styles/globals.css`; preserve as variáveis CSS existentes ao alterar o tema.
+- A persistência usa Prisma com PostgreSQL. O schema fica em `apps/storefront/prisma/schema.prisma`, as migrations em `apps/storefront/prisma/migrations` e o seed em `apps/storefront/scripts/seed-products.ts`.
 - A fonte global Montserrat é configurada pelo `next/font` no layout localizado.
 - Os componentes devem manter comportamento responsivo, acessibilidade por teclado e rótulos acessíveis para controles interativos.
 

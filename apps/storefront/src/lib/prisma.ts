@@ -1,31 +1,26 @@
-import { getConnectionString } from '@netlify/database';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
-export type DatabaseProvider = 'mysql' | 'postgresql';
-
 /**
- * The Prisma Client is generated for a single provider at a time.
- * Keep the selection in one place so the app, seed, and scripts agree.
+ * Returns the PostgreSQL connection string used by the app.
+ *
+ * `DATABASE_URL` is the canonical variable. Vercel's Prisma Postgres
+ * integration may inject `POSTGRES_PRISMA_DATABASE_URL` or `POSTGRES_URL`
+ * instead, so those are accepted as fallbacks.
  */
-export function getDatabaseProvider(): DatabaseProvider {
-  const explicit = process.env.DATABASE_PROVIDER?.trim().toLowerCase();
-  if (explicit === 'postgres' || explicit === 'postgresql') return 'postgresql';
-  if (explicit === 'mysql') return 'mysql';
+function getDatabaseUrl() {
+  const url =
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_PRISMA_DATABASE_URL ??
+    process.env.POSTGRES_URL;
 
-  const url = process.env.NETLIFY_DB_URL ?? process.env.DATABASE_URL ?? '';
-  return /^postgres(?:ql)?:\/\//i.test(url) ? 'postgresql' : 'mysql';
-}
-
-function postgresConnectionString() {
-  const configured = process.env.NETLIFY_DB_URL ?? process.env.DATABASE_URL;
-  if (configured && /^postgres(?:ql)?:\/\//i.test(configured)) {
-    return configured;
+  if (!url || !/^postgres(?:ql)?:\/\//i.test(url)) {
+    throw new Error(
+      'Configure DATABASE_URL with a PostgreSQL connection string.'
+    );
   }
 
-  // Netlify injects NETLIFY_DB_URL at build/runtime. This helper also works
-  // with the Netlify CLI and local Netlify Database sessions.
-  return getConnectionString();
+  return url;
 }
 
 const globalForPrisma = globalThis as unknown as {
@@ -34,15 +29,12 @@ const globalForPrisma = globalThis as unknown as {
 
 function getPrisma() {
   if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma =
-      getDatabaseProvider() === 'postgresql'
-        ? new PrismaClient({
-            adapter: new PrismaPg({
-              connectionString: postgresConnectionString(),
-            }),
-            log: ['error'],
-          } as never)
-        : new PrismaClient({ log: ['error'] });
+    globalForPrisma.prisma = new PrismaClient({
+      adapter: new PrismaPg({
+        connectionString: getDatabaseUrl(),
+      }),
+      log: ['error'],
+    } as never);
   }
 
   return globalForPrisma.prisma;

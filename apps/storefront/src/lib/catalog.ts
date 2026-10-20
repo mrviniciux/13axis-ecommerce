@@ -16,7 +16,8 @@ export function slugify(value: string) {
 }
 
 // Case- and accent-insensitive key used to compare catalog names in the UI.
-// MySQL uses a `_ci` collation, so this mirrors how uniqueness is enforced.
+// PostgreSQL string comparison is case-sensitive, so the UI normalizes names
+// before matching them.
 export function normalizeCatalogName(value: string) {
   return value
     .normalize('NFD')

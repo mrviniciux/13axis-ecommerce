@@ -7,7 +7,6 @@ jest.mock('@/lib/prisma', () => ({
       findMany: jest.fn(),
     },
   },
-  getDatabaseProvider: jest.fn(() => 'postgresql'),
 }));
 
 const findMany = prisma.product.findMany as unknown as jest.Mock;

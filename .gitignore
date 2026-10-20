@@ -128,3 +128,4 @@ dist
 /playwright/.cache/
 .vercel
 .env*
+!.env.example

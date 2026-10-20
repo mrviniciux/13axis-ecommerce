@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import { getDatabaseProvider, prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { getProductImageUrl } from '@/lib/product-image';
 
 const colorMap: Record<string, string> = {
@@ -28,17 +28,14 @@ function mapColorName(name: string | undefined) {
 }
 
 /**
- * PostgreSQL `contains` is case-sensitive; MySQL's default collation is not.
- * Prisma only accepts `mode` for PostgreSQL, so add it conditionally.
+ * PostgreSQL `contains` is case-sensitive, so catalog searches use Prisma's
+ * `mode: 'insensitive'` filter.
  */
 function textFilter(value: string) {
-  const filter: { contains: string; mode?: 'insensitive' } = {
+  return {
     contains: value,
+    mode: 'insensitive' as const,
   };
-  if (getDatabaseProvider() === 'postgresql') {
-    filter.mode = 'insensitive';
-  }
-  return filter;
 }
 
 function parseList(value: string | null) {
@@ -51,16 +48,13 @@ function parseList(value: string | null) {
 
 /**
  * Sizes are stored as the second part of the variant label (e.g. "Preto / M").
- * `endsWith` is case-sensitive on PostgreSQL, so add `mode` conditionally.
+ * `endsWith` is case-sensitive on PostgreSQL, so use an insensitive filter.
  */
 function textSuffix(value: string) {
-  const filter: { endsWith: string; mode?: 'insensitive' } = {
+  return {
     endsWith: value,
+    mode: 'insensitive' as const,
   };
-  if (getDatabaseProvider() === 'postgresql') {
-    filter.mode = 'insensitive';
-  }
-  return filter;
 }
 
 function parsePrice(value: string | null) {
