@@ -10,7 +10,8 @@
         "command": "next dev",
         "cwd": "apps/storefront"
       },
-      "cache": false
+      "cache": false,
+      "dependsOn": ["db:generate"]
     },
     "build": {
       "executor": "nx:run-commands",
@@ -18,7 +19,9 @@
         "command": "next build",
         "cwd": "apps/storefront"
       },
-      "outputs": ["{projectRoot}/.next"]
+      "outputs": ["{projectRoot}/.next"],
+      "dependsOn": ["db:generate"],
+      "cache": false
     },
     "start": {
       "executor": "nx:run-commands",
@@ -41,7 +44,8 @@
       "options": {
         "command": "jest --config jest.config.ts",
         "cwd": "apps/storefront"
-      }
+      },
+      "dependsOn": ["db:generate"]
     },
     "test:watch": {
       "executor": "nx:run-commands",
@@ -64,7 +68,8 @@
       "options": {
         "command": "tsc --noEmit",
         "cwd": "apps/storefront"
-      }
+      },
+      "dependsOn": ["db:generate"]
     },
     "storybook": {
       "executor": "nx:run-commands",
@@ -80,6 +85,14 @@
         "command": "storybook build --config-dir .storybook",
         "cwd": "apps/storefront"
       }
+    },
+    "db:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm db:generate",
+        "cwd": "apps/storefront"
+      },
+      "cache": false
     }
   }
 }

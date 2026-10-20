@@ -3,18 +3,23 @@
   "private": true,
   "scripts": {
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:migrations": "drizzle-kit generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
+    "@netlify/database": "^2.0.1",
+    "@prisma/adapter-pg": "6.19.0",
     "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.3",
+    "drizzle-orm": "1.0.0-beta.22",
     "next-auth": "5.0.0-beta.32",
     "recharts": "^3.10.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "1.0.0-beta.22",
     "prisma": "6.19.0"
   }
 }
