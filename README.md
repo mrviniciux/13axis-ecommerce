@@ -142,9 +142,9 @@ To run a script inside the storefront package from the repository root, use the
 
 ## PostgreSQL
 
-The application uses PostgreSQL in local development, Docker, and production.
-The previous MySQL schema and migrations were removed; existing MySQL data is
-not migrated automatically. Export and import it separately if needed.
+The application uses PostgreSQL in all environments: local development, Docker,
+and Vercel. PostgreSQL 17 is the version used by Docker Compose, and the Prisma
+schema and migrations are PostgreSQL-only.
 
 ### Configuration
 
@@ -313,6 +313,11 @@ painel da Vercel, apague-o ou altere para `pnpm vercel-build`; caso contrário, 
 comando do painel pode ignorar o script automático. O fluxo roda em qualquer
 deployment que use o build padrão, incluindo Preview.
 
+O `next.config.mjs` também inclui os arquivos `.wasm` do Prisma Client em
+`outputFileTracingIncludes`. Isso é necessário porque o query compiler lê
+`query_compiler_bg.wasm` em runtime, e o trace automático da Vercel não detecta
+essa leitura; sem o include, a página administrativa falha com `ENOENT`.
+
 O seed não apaga dados e usa `upsert`/verificação de slug, mas ele mantém as
 imagens do catálogo de demonstração sincronizadas com
 `scripts/seed-products.ts`. Se não quiser seed em algum ambiente, remova o
@@ -354,6 +359,7 @@ apps/
       schema.prisma            PostgreSQL schema
       migrations/              Versioned PostgreSQL migrations
     scripts/                   Seed and Prisma helpers
+    next.config.mjs            Next.js config, including Prisma WASM tracing
     project.json               Nx targets for the storefront
     vercel.json                Build command for app-root deployments
 vercel.json                    Vercel build: migrations, seed, and app build

@@ -30,6 +30,7 @@ A área administrativa foi adicionada ao projeto `apps/storefront` e usa as rota
 - `pnpm typecheck`, Jest (46 testes em 12 suítes), `pnpm lint` (0 erros e 2 avisos) e `pnpm build` passaram.
 - `docker compose config --quiet` passou para o Compose de desenvolvimento; o Compose de produção também validou com as variáveis obrigatórias fornecidas temporariamente.
 - O deploy da Vercel usa `vercel-build` para executar `db:migrate`, `db:seed` e `pnpm build`, conforme `vercel.json`.
+- O `next.config.mjs` inclui o WASM do query compiler do Prisma no output trace, evitando `ENOENT` no runtime da Vercel.
 
 ## Pendências abertas
 

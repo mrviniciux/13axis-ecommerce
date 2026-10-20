@@ -3,6 +3,7 @@ Task completed. Summary of changes:
 - Updated Prisma schema: the image column uses PostgreSQL `TEXT`.
 - The initial PostgreSQL migration creates the image column as `TEXT`.
 - Vercel deploys now run `db:migrate` and `db:seed` before the application build through `vercel-build`.
+- Added the Prisma Client WASM files to Next.js output tracing so the query compiler works in Vercel's serverless runtime.
 - Updated admin product creation and update API routes to accept and store image as base64 data URL (with validation for JPEG, PNG, WebP up to 2MB).
 - Added API route to serve stored product images with versioning based on updatedAt to avoid caching issues.
 - Updated product listing and detail pages to use the new image serving route.
