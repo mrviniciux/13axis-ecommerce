@@ -3,6 +3,8 @@ import { auth, googleLoginEnabled } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import LoginForm from './LoginForm';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLoginPage() {
   const [session, userCount] = await Promise.all([auth(), prisma.user.count()]);
   if (
