@@ -57,6 +57,42 @@ it('passes search and price filters as Prisma values', async () => {
   );
 });
 
+it('passes color, size, and price filters as Prisma values', async () => {
+  await listProducts(
+    new URLSearchParams({
+      colors: 'black,white',
+      sizes: 'M,GG',
+      minPrice: '100',
+    })
+  );
+
+  const args = findMany.mock.calls[0][0];
+  expect(args.where.variation).toEqual({
+    is: { slug: { in: ['preto', 'branco'] } },
+  });
+  expect(args.where.variants).toEqual({
+    some: {
+      AND: [
+        {
+          OR: [
+            { label: { endsWith: ' / M', mode: 'insensitive' } },
+            { label: { endsWith: ' / GG', mode: 'insensitive' } },
+          ],
+        },
+        { salePrice: { gte: 100 } },
+      ],
+    },
+  });
+});
+
+it('does not match products for an unknown color', async () => {
+  await listProducts(new URLSearchParams({ colors: 'pink' }));
+
+  expect(findMany.mock.calls[0][0].where.variation).toEqual({
+    is: { slug: { in: [] } },
+  });
+});
+
 it.each(['NaN', '-1', 'Infinity'])(
   'rejects an invalid price (%s) before querying',
   async (minPrice) => {

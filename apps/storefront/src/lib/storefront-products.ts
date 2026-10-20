@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { getDatabaseProvider, prisma } from '@/lib/prisma';
 import { getProductImageUrl } from '@/lib/product-image';
 
@@ -10,6 +10,10 @@ const colorMap: Record<string, string> = {
   marrom: 'brown',
   verde: 'green',
 };
+
+const colorSlugs: Record<string, string> = Object.fromEntries(
+  Object.entries(colorMap).map(([slug, color]) => [color, slug])
+);
 
 function mapColorName(name: string | undefined) {
   if (!name) return 'white';
@@ -37,6 +41,28 @@ function textFilter(value: string) {
   return filter;
 }
 
+function parseList(value: string | null) {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Sizes are stored as the second part of the variant label (e.g. "Preto / M").
+ * `endsWith` is case-sensitive on PostgreSQL, so add `mode` conditionally.
+ */
+function textSuffix(value: string) {
+  const filter: { endsWith: string; mode?: 'insensitive' } = {
+    endsWith: value,
+  };
+  if (getDatabaseProvider() === 'postgresql') {
+    filter.mode = 'insensitive';
+  }
+  return filter;
+}
+
 function parsePrice(value: string | null) {
   if (value === null || value === '') return undefined;
   const price = Number(value);
@@ -50,6 +76,8 @@ export async function listProducts(searchParams: URLSearchParams) {
   const id = searchParams.get('id');
   const category = searchParams.get('category');
   const brand = searchParams.get('brand');
+  const colors = parseList(searchParams.get('colors'));
+  const sizes = parseList(searchParams.get('sizes'));
   const minPrice = parsePrice(searchParams.get('minPrice'));
   const maxPrice = parsePrice(searchParams.get('maxPrice'));
   const search = searchParams.get('search');
@@ -74,15 +102,35 @@ export async function listProducts(searchParams: URLSearchParams) {
     };
   }
 
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    const priceConditions: Prisma.ProductVariantWhereInput[] = [];
-    if (minPrice !== undefined) {
-      priceConditions.push({ salePrice: { gte: minPrice } });
-    }
-    if (maxPrice !== undefined) {
-      priceConditions.push({ salePrice: { lte: maxPrice } });
-    }
-    where.variants = { some: { AND: priceConditions } };
+  if (colors.length > 0) {
+    where.variation = {
+      is: {
+        slug: {
+          in: colors
+            .map((color) => colorSlugs[color.toLowerCase()])
+            .filter((slug): slug is string => Boolean(slug)),
+        },
+      },
+    };
+  }
+
+  const variantConditions: Prisma.ProductVariantWhereInput[] = [];
+
+  if (sizes.length > 0) {
+    variantConditions.push({
+      OR: sizes.map((size) => ({ label: textSuffix(` / ${size}`) })),
+    });
+  }
+
+  if (minPrice !== undefined) {
+    variantConditions.push({ salePrice: { gte: minPrice } });
+  }
+  if (maxPrice !== undefined) {
+    variantConditions.push({ salePrice: { lte: maxPrice } });
+  }
+
+  if (variantConditions.length > 0) {
+    where.variants = { some: { AND: variantConditions } };
   }
 
   if (search) {

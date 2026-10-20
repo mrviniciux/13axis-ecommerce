@@ -1,9 +1,17 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { fireEvent, render, screen, within, act } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+  act,
+  waitFor,
+} from '@testing-library/react';
+import { SWRConfig } from 'swr';
 import ptBR from '@/i18n/messages/pt-BR.json';
 import ProductListing from './ProductListing';
 
-const mockProducts = {
+export const mockProducts = {
   products: [
     {
       id: 'essential-cotton',
@@ -80,24 +88,50 @@ const mockProducts = {
   ],
 };
 
+const originalFetch = globalThis.fetch;
+
+function jsonResponse(body: unknown) {
+  return {
+    ok: true,
+    json: async () => body,
+  } as Response;
+}
+
+const fetchMock = jest.fn(async (input: string) => {
+  const url = new URL(String(input), 'http://localhost');
+  const colors = url.searchParams.get('colors');
+  const sizes = url.searchParams.get('sizes');
+  const minPrice = url.searchParams.get('minPrice');
+
+  if (minPrice === '500') {
+    return jsonResponse({ products: [] });
+  }
+
+  if (colors === 'black' && sizes === 'GG' && minPrice === '100') {
+    return jsonResponse({ products: [mockProducts.products[7]] });
+  }
+
+  return jsonResponse(mockProducts);
+});
+
 function renderProductListing() {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={ptBR}>
-      <ProductListing />
-    </NextIntlClientProvider>
+    <SWRConfig value={{ provider: () => new Map() }}>
+      <NextIntlClientProvider locale="pt-BR" messages={ptBR}>
+        <ProductListing />
+      </NextIntlClientProvider>
+    </SWRConfig>
   );
 }
 
 describe('ProductListing', () => {
   beforeEach(() => {
-    (globalThis.fetch as jest.Mock) = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockProducts,
-    } as Response);
+    fetchMock.mockClear();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    globalThis.fetch = originalFetch;
   });
 
   it('shows eight products and only the requested filters', async () => {
@@ -105,7 +139,11 @@ describe('ProductListing', () => {
       renderProductListing();
     });
 
-    expect(screen.getByTestId('product-count')).toHaveTextContent('8 produtos');
+    await waitFor(() => {
+      expect(screen.getByTestId('product-count')).toHaveTextContent(
+        '8 produtos'
+      );
+    });
     expect(screen.getAllByRole('article')).toHaveLength(8);
     expect(screen.getByRole('group', { name: 'Cor' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Tamanho' })).toBeInTheDocument();
@@ -116,11 +154,15 @@ describe('ProductListing', () => {
     expect(
       screen.getByRole('link', { name: /Camiseta Essential de algodão/ })
     ).toHaveAttribute('href', '/br/produtos/essential-cotton');
+    expect(fetchMock).toHaveBeenCalledWith('/api/products');
   });
 
   it('filters by color, size, and price together', async () => {
     await act(async () => {
       renderProductListing();
+    });
+    await waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(8);
     });
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'Preto' }));
@@ -129,26 +171,47 @@ describe('ProductListing', () => {
       target: { value: '100' },
     });
 
-    expect(screen.getByTestId('product-count')).toHaveTextContent('1 produto');
+    await waitFor(() => {
+      expect(screen.getByTestId('product-count')).toHaveTextContent(
+        '1 produto'
+      );
+    });
     expect(
       screen.getByRole('heading', { name: 'Camiseta urbana preta' })
     ).toBeInTheDocument();
+
+    const requestedUrls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(
+      requestedUrls.some(
+        (url) =>
+          url.includes('colors=black') &&
+          url.includes('sizes=GG') &&
+          url.includes('minPrice=100')
+      )
+    ).toBe(true);
   });
 
   it('shows an empty state and clears filters', async () => {
     await act(async () => {
       renderProductListing();
     });
+    await waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(8);
+    });
 
     fireEvent.change(screen.getByRole('spinbutton', { name: 'Mínimo' }), {
       target: { value: '500' },
     });
-    expect(
-      screen.getByRole('heading', { name: 'Nenhum produto encontrado' })
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Nenhum produto encontrado' })
+      ).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpar' }));
-    expect(screen.getAllByRole('article')).toHaveLength(8);
+    await waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(8);
+    });
     expect(
       within(screen.getByRole('group', { name: 'Preço (R$)' })).getByRole(
         'spinbutton',

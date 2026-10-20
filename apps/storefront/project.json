@@ -44,8 +44,7 @@
       "options": {
         "command": "jest --config jest.config.ts",
         "cwd": "apps/storefront"
-      },
-      "dependsOn": ["db:generate"]
+      }
     },
     "test:watch": {
       "executor": "nx:run-commands",
