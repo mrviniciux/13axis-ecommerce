@@ -9,6 +9,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { appConfig } from '@/config/app';
+import { formatCurrency } from '@/lib/currency';
 
 const data = [
   { month: 'Mai', sales: 28400 },
@@ -24,12 +26,6 @@ const data = [
   { month: 'Mar', sales: 49600 },
   { month: 'Abr', sales: 62400 },
 ];
-
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-  maximumFractionDigits: 0,
-});
 
 export default function SalesChart() {
   return (
@@ -74,7 +70,12 @@ export default function SalesChart() {
               borderRadius: 4,
               fontSize: 12,
             }}
-            formatter={(value) => [currency.format(Number(value)), 'Vendas']}
+            formatter={(value) => [
+              formatCurrency(Number(value), appConfig.adminLocale, {
+                maximumFractionDigits: 0,
+              }),
+              'Vendas',
+            ]}
           />
           <Area
             type="monotone"

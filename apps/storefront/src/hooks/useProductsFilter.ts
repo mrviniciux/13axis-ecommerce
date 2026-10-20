@@ -1,28 +1,37 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { ProductFromApi } from '@/types/product';
+import useProducts from './useProducts';
 
-function useProductsFilter(products: ProductFromApi[]) {
+function useProductsFilter() {
   const [minimumPrice, setMinimumPrice] = useState('');
   const [maximumPrice, setMaximumPrice] = useState('');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
-  const filteredProducts = useMemo(() => {
-    const min = minimumPrice === '' ? null : Number(minimumPrice);
-    const max = maximumPrice === '' ? null : Number(maximumPrice);
+  const query = useMemo(() => {
+    const params = new URLSearchParams();
 
-    return products.filter(
-      (product) =>
-        (selectedColors.length === 0 ||
-          selectedColors.includes(product.color)) &&
-        (selectedSizes.length === 0 ||
-          product.sizes.some((size) => selectedSizes.includes(size))) &&
-        (min === null || product.price >= min) &&
-        (max === null || product.price <= max)
-    );
-  }, [maximumPrice, minimumPrice, products, selectedColors, selectedSizes]);
+    if (selectedColors.length > 0) {
+      params.set('colors', selectedColors.join(','));
+    }
+
+    if (selectedSizes.length > 0) {
+      params.set('sizes', selectedSizes.join(','));
+    }
+
+    if (minimumPrice !== '') {
+      params.set('minPrice', minimumPrice);
+    }
+
+    if (maximumPrice !== '') {
+      params.set('maxPrice', maximumPrice);
+    }
+
+    return params.toString();
+  }, [maximumPrice, minimumPrice, selectedColors, selectedSizes]);
+
+  const { products: filteredProducts, loading, error } = useProducts(query);
 
   const hasActiveFilters =
     selectedColors.length > 0 ||
@@ -30,8 +39,23 @@ function useProductsFilter(products: ProductFromApi[]) {
     minimumPrice !== '' ||
     maximumPrice !== '';
 
+  function toggleValue(
+    value: string,
+    selected: string[],
+    setSelected: (values: string[]) => void
+  ) {
+    setSelected(
+      selected.includes(value)
+        ? selected.filter((item) => item !== value)
+        : [...selected, value]
+    );
+  }
+
   return {
+    toggleValue,
     filteredProducts,
+    loading,
+    error,
     hasActiveFilters,
     selectedColors,
     setSelectedColors,
@@ -43,5 +67,7 @@ function useProductsFilter(products: ProductFromApi[]) {
     setMaximumPrice,
   };
 }
+
+export type ProductsFilter = ReturnType<typeof useProductsFilter>;
 
 export default useProductsFilter;

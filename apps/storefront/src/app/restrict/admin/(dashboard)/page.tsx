@@ -11,14 +11,11 @@ import {
 } from 'lucide-react';
 import SalesChart from '@/components/SalesChart';
 import { prisma } from '@/lib/prisma';
-
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
+import { appConfig } from '@/config/app';
+import { formatCurrency } from '@/lib/currency';
 
 export default async function AdminDashboardPage() {
-  const currentDate = new Intl.DateTimeFormat('pt-BR', {
+  const currentDate = new Intl.DateTimeFormat(appConfig.adminLocale, {
     dateStyle: 'full',
   }).format(new Date());
   const products = await prisma.product.findMany({
@@ -43,7 +40,9 @@ export default async function AdminDashboardPage() {
   const metrics = [
     {
       label: 'Faturamento do período',
-      value: 'R$ 62.400',
+      value: formatCurrency(62400, appConfig.adminLocale, {
+        maximumFractionDigits: 0,
+      }),
       change: '+12,8%',
       icon: Wallet,
       tone: 'green',
@@ -64,7 +63,7 @@ export default async function AdminDashboardPage() {
     },
     {
       label: 'Unidades disponíveis',
-      value: unitsAvailable.toLocaleString('pt-BR'),
+      value: unitsAvailable.toLocaleString(appConfig.adminLocale),
       change: `${lowStockCount} em reposição`,
       icon: Boxes,
       tone: lowStockCount > 0 ? 'red' : 'green',
@@ -253,7 +252,10 @@ export default async function AdminDashboardPage() {
                     </td>
                     <td className="px-4 py-3.5 text-right text-[#303a36]">
                       {product.variants[0]
-                        ? currency.format(Number(product.variants[0].salePrice))
+                        ? formatCurrency(
+                            Number(product.variants[0].salePrice),
+                            appConfig.adminLocale
+                          )
                         : '—'}
                     </td>
                     <td className="px-6 py-3.5 text-right">

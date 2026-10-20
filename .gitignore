@@ -126,3 +126,5 @@ dist
 /apps/storefront/storybook-static/
 /blob-report/
 /playwright/.cache/
+.vercel
+.env*

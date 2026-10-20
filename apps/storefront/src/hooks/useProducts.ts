@@ -1,50 +1,36 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import useProductsFilter from './useProductsFilter';
+import useSWR from 'swr';
 import type { ProductFromApi } from '@/types/product';
 
-function useProducts() {
-  const [products, setProducts] = useState<ProductFromApi[]>([]);
-  const [loading, setLoading] = useState(true);
+type ProductsResponse = {
+  products?: ProductFromApi[];
+};
 
-  useEffect(() => {
-    let cancelled = false;
+async function fetchProducts(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar os produtos.');
+  }
+  return (await response.json()) as ProductsResponse;
+}
 
-    async function fetchProducts() {
-      try {
-        const response = await fetch('/api/products');
-        if (!response.ok) {
-          throw new Error('Não foi possível carregar os produtos.');
-        }
-        const data = await response.json();
-        if (!cancelled) {
-          setProducts(data.products || []);
-        }
-      } catch {
-        if (!cancelled) {
-          setProducts([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+function useProducts(query = '') {
+  const key = query ? `/api/products?${query}` : '/api/products';
+  const { data, error, isLoading } = useSWR<ProductsResponse, Error>(
+    key,
+    fetchProducts,
+    {
+      dedupingInterval: 60_000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
     }
-
-    fetchProducts();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filters = useProductsFilter(products);
+  );
 
   return {
-    products,
-    loading,
-    ...filters,
+    products: data?.products ?? [],
+    loading: isLoading,
+    error,
   };
 }
 

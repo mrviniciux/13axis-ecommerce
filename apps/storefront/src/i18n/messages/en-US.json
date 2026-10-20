@@ -8,7 +8,7 @@
     "clearFilters": "Clear",
     "color": "Color",
     "size": "Size",
-    "price": "Price (R$)",
+    "price": "Price ({currency})",
     "minimumPrice": "Min",
     "maximumPrice": "Max",
     "availableSizes": "Sizes: {sizes}",

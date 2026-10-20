@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { getProductImageUrl } from '@/lib/product-image';
 import CatalogCombobox from '@/components/CatalogCombobox';
+import { appConfig } from '@/config/app';
+import { formatCurrency, getCurrencySymbol } from '@/lib/currency';
 
 type CatalogOption = {
   id: string;
@@ -56,10 +58,11 @@ type InventoryProduct = {
   }[];
 };
 
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-});
+const adminCurrencySymbol = getCurrencySymbol(appConfig.adminLocale);
+
+function formatAdminCurrency(value: number) {
+  return formatCurrency(value, appConfig.adminLocale);
+}
 
 export default function ProductInventoryManager({
   initialProducts,
@@ -523,7 +526,7 @@ export default function ProductInventoryManager({
               )}
             </label>
             <Field
-              label="Custo unitário (R$)"
+              label={`Custo unitário (${adminCurrencySymbol})`}
               name="costPrice"
               type="number"
               min="0"
@@ -536,7 +539,7 @@ export default function ProductInventoryManager({
               }
             />
             <Field
-              label="Preço de venda (R$)"
+              label={`Preço de venda (${adminCurrencySymbol})`}
               name="salePrice"
               type="number"
               min="0"
@@ -712,10 +715,10 @@ export default function ProductInventoryManager({
                           </span>
                         </td>
                         <td className="px-4 py-4 text-right text-[#68736e]">
-                          {currency.format(Number(variant.costPrice))}
+                          {formatAdminCurrency(Number(variant.costPrice))}
                         </td>
                         <td className="px-4 py-4 text-right font-medium text-[#303a36]">
-                          {currency.format(Number(variant.salePrice))}
+                          {formatAdminCurrency(Number(variant.salePrice))}
                         </td>
                         <td className="px-4 py-4 text-right">
                           <span

@@ -2,33 +2,23 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Check, ShoppingBag } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { useCartStore } from '@/lib/cart-store';
-
-interface ProductFromApi {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  color: string;
-  sizes: string[];
-}
+import { getColorSwatch } from '@/config/catalog';
+import useCurrencyFormatter from '@/hooks/useCurrencyFormatter';
+import type { ProductFromApi } from '@/types/product';
 
 function ProductDetail({ product }: { product: ProductFromApi }) {
   const t = useTranslations('products');
-  const locale = useLocale();
+  const currency = useCurrencyFormatter();
   const addItem = useCartStore((state) => state.addItem);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showSizeError, setShowSizeError] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
   const productName = product.name;
-  const currency = new Intl.NumberFormat(
-    locale === 'pt-BR' ? 'pt-BR' : 'en-US',
-    { style: 'currency', currency: 'BRL' }
-  );
 
   function handleAddToCart() {
     if (!selectedSize) {
@@ -122,22 +112,7 @@ function ProductDetail({ product }: { product: ProductFromApi }) {
                 <span
                   aria-label={t(`colors.${product.color}`)}
                   className="size-8 rounded-full border border-border shadow-sm"
-                  style={{
-                    backgroundColor:
-                      product.color === 'white'
-                        ? '#ffffff'
-                        : product.color === 'black'
-                          ? '#171717'
-                          : product.color === 'blue'
-                            ? '#254a75'
-                            : product.color === 'gray'
-                              ? '#888888'
-                              : product.color === 'green'
-                                ? '#526c57'
-                                : product.color === 'brown'
-                                  ? '#6f4e37'
-                                  : '#d995a5',
-                  }}
+                  style={{ backgroundColor: getColorSwatch(product.color) }}
                 />
               </div>
             </div>
