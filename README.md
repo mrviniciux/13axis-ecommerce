@@ -8,9 +8,11 @@ the differences between Server and Client Components.
 <img width="1072" height="932" alt="Storefront screenshot" src="https://github.com/user-attachments/assets/a1923126-592a-4f89-94b9-f6bea49a8339" />
 
 This is a learning project, not a production store. The storefront catalog and
-cart counter remain demo data. The administrative area uses MySQL for accounts,
-products, inventory balances, and an auditable stock movement ledger. Sales
-figures on its dashboard are illustrative, not connected to orders or payments.
+cart counter remain demo data. The administrative area uses Prisma with MySQL
+locally and PostgreSQL (Netlify Database) when deployed to Netlify. It stores
+accounts, products, inventory balances, and an auditable stock movement ledger.
+Sales figures on its dashboard are illustrative, not connected to orders or
+payments.
 
 ## What You Can Explore
 
@@ -30,8 +32,9 @@ figures on its dashboard are illustrative, not connected to orders or payments.
 
 The admin area lives under `/restrict/admin` (login at `/restrict/admin/login`)
 and does not use the localized storefront layout. It stores users, products,
-inventory, and stock movements in MySQL through Prisma. See
-[Local MySQL](#local-mysql) to configure the database.
+inventory, and stock movements through Prisma in MySQL locally or PostgreSQL on
+Netlify. See [Local MySQL](#local-mysql) and
+[Netlify deploy](NETLIFY_DEPLOY.md).
 
 The admin has two workspaces. **Produtos e estoque** manages products and stock.
 **Catálogos** maintains categories, brands, and variations. Categories, brands,
@@ -56,9 +59,10 @@ external platform is connected yet.
 
 The admin catalog supports product and primary-variant edits, image uploads
 (JPEG, PNG, or WebP up to 2 MB), and inactivation/reactivation. Uploaded images
-are stored in MySQL. Inactivation archives a product from the storefront without
-deleting its inventory movement history. Sales figures on the dashboard are
-illustrative and are not connected to orders or payments.
+are stored in the database, so the same admin behavior works on MySQL and
+PostgreSQL. Inactivation archives a product from the storefront without deleting
+its inventory movement history. Sales figures on the dashboard are illustrative
+and are not connected to orders or payments.
 
 Google sign-in is optional; configure `GOOGLE_CLIENT_ID` and
 `GOOGLE_CLIENT_SECRET` in `.env` and register
@@ -71,13 +75,14 @@ Cloud.
 - React 18 and TypeScript
 - `next-intl` for localization
 - Tailwind CSS 4
+- Prisma ORM with MySQL (local) and PostgreSQL (Netlify Database)
 - Jest and Testing Library
 - Playwright for end-to-end tests
 - Nx monorepo with pnpm workspaces
 
 ## Requirements
 
-- Node.js `20.17.0` (see `.nvmrc`)
+- Node.js `22.23.3` (see `.nvmrc`; `@netlify/database` requires 22.12+)
 - pnpm `9.15.9`
 - Docker and Docker Compose (optional)
 
@@ -116,11 +121,11 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000). Portuguese (Brazil) is the
 default locale at `/br`; English (United States) is available at `/us`.
 
-`pnpm dev` starts Next.js only. The storefront pages render from local sample
-data and do not need a database. The admin area under `/restrict/admin` and its
-API routes do require MySQL, applied Prisma migrations, and `AUTH_SECRET`; see
-[Local MySQL](#local-mysql) below, or use the Docker Compose environment, which
-starts the database and storefront together.
+`pnpm dev` starts Next.js only. The product catalog and the admin area under
+`/restrict/admin` query the database through Prisma, so configure MySQL and
+apply the migrations before using those pages. `AUTH_SECRET` is also required
+for the admin area. See [Local MySQL](#local-mysql) below, or use the Docker
+Compose environment, which starts the database and storefront together.
 
 You can also run an Nx target directly:
 
@@ -138,10 +143,39 @@ To run a script inside the storefront package from the repository root, use the
 `--filter` flag, for example
 `pnpm --filter @13axis/storefront db:generate`.
 
+## Database providers
+
+The application uses the same Prisma models and seed for two providers:
+
+| Environment       | Provider   | Prisma schema                | Migrations                                      |
+| ----------------- | ---------- | ---------------------------- | ----------------------------------------------- |
+| Local / Docker    | MySQL      | `prisma/mysql/schema.prisma` | `prisma/mysql/migrations`                       |
+| Netlify           | PostgreSQL | `prisma/schema.prisma`       | `netlify/database/migrations` (applied by Netlify) |
+
+`DATABASE_PROVIDER` selects the provider. It defaults to `mysql` locally and is
+set to `postgresql` in `netlify.toml`. The Prisma Client is generated for one
+provider at a time, so run `db:generate` after changing the environment:
+
+```bash
+pnpm --filter @13axis/storefront db:generate           # uses DATABASE_PROVIDER
+pnpm --filter @13axis/storefront db:generate:mysql     # force MySQL
+pnpm --filter @13axis/storefront db:generate:postgres  # force PostgreSQL
+```
+
+The seed works with both providers:
+
+```bash
+pnpm --filter @13axis/storefront db:seed
+```
+
+For PostgreSQL, set `DATABASE_PROVIDER=postgresql` and `NETLIFY_DB_URL` before
+running the seed. Netlify applies the PostgreSQL migrations automatically; see
+[NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md).
+
 ## Local MySQL
 
-The admin area stores users, products, inventory, and stock movements in MySQL
-through Prisma. Configure a database once before running the admin routes.
+Local development uses MySQL through Prisma. Configure a database once before
+running the product catalog or admin routes.
 
 ### Configuration file
 
@@ -234,9 +268,10 @@ export DATABASE_URL="mysql://axis_admin:change-this-local-password@127.0.0.1:330
 
 ### Migrations
 
-Migration files live in `apps/storefront/prisma/migrations`. `pnpm dev` does not
-apply them automatically, so run the steps below before starting the storefront
-with the admin area, and whenever you pull changes that add new migrations.
+Migration files live in `apps/storefront/prisma/mysql/migrations`. `pnpm dev`
+does not apply them automatically, so run the steps below before starting the
+storefront with the catalog or admin area, and whenever you pull changes that
+add new migrations.
 
 With **Option A**, the Compose `migrate` service applies everything for you:
 
@@ -250,14 +285,14 @@ Prisma from the repository root.
 Check which migrations have already been applied:
 
 ```bash
-pnpm --filter @13axis/storefront exec prisma migrate status
+pnpm --filter @13axis/storefront exec prisma migrate status --schema prisma/mysql/schema.prisma
 ```
 
 Apply all pending migrations and regenerate the Prisma Client:
 
 ```bash
 pnpm --filter @13axis/storefront db:generate
-pnpm --filter @13axis/storefront exec prisma migrate deploy
+pnpm --filter @13axis/storefront db:migrate
 ```
 
 `migrate deploy` only applies migrations that have not run yet; it never creates
@@ -266,15 +301,16 @@ an existing local database.
 
 #### Creating a migration after changing the schema
 
-Edit `apps/storefront/prisma/schema.prisma`, then create and apply a migration:
+Edit `apps/storefront/prisma/mysql/schema.prisma`, then create and apply a
+migration:
 
 ```bash
-pnpm --filter @13axis/storefront exec prisma migrate dev --name describe_change
+pnpm --filter @13axis/storefront exec prisma migrate dev --schema prisma/mysql/schema.prisma --name describe_change
 ```
 
-This creates a new folder under `prisma/migrations`, applies it to the local
-database, and regenerates the Prisma Client. Commit the generated migration
-together with the schema change.
+This creates a new folder under `prisma/mysql/migrations`, applies it to the
+local database, and regenerates the Prisma Client. Commit the generated
+migration together with the schema change.
 
 `migrate dev` requires a temporary shadow database, so the MySQL user must be
 able to create and drop databases. For a native local MySQL, grant the
@@ -294,7 +330,7 @@ local installation.
 To drop the local schema and re-apply every migration from scratch:
 
 ```bash
-pnpm --filter @13axis/storefront exec prisma migrate reset
+pnpm --filter @13axis/storefront exec prisma migrate reset --schema prisma/mysql/schema.prisma
 ```
 
 `migrate reset` deletes all local data. Never run it against production.
@@ -312,8 +348,13 @@ apps/
       app/[locale]/            Localized App Router pages and layouts
       components/              Shared UI and storefront components
       i18n/                    Locale routing and translation messages
-      lib/                     Sample product data and demo cart state
+      lib/                     Prisma queries, product mapping, and demo cart state
       styles/                  Global styles and theme tokens
+    prisma/
+      schema.prisma            PostgreSQL schema (Netlify)
+      mysql/                   MySQL schema and migrations (local)
+    netlify/database/migrations/  PostgreSQL migrations applied by Netlify
+    scripts/                   Seed and Prisma generation helpers
     project.json               Nx targets for the storefront
 nx.json                        Shared Nx configuration
 pnpm-workspace.yaml            pnpm workspace definition

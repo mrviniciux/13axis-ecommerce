@@ -1,36 +1,59 @@
-import { drizzle } from 'drizzle-orm/pg-proxy';
-import { getDb } from '../../db';
+import { prisma } from '@/lib/prisma';
 import { listProducts } from './storefront-products';
 
-jest.mock('../../db', () => ({ getDb: jest.fn() }));
-
-const execute = jest.fn(async (_query: string, _params: unknown[]) => ({
-  rows: [],
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    product: {
+      findMany: jest.fn(),
+    },
+  },
+  getDatabaseProvider: jest.fn(() => 'postgresql'),
 }));
+
+const findMany = prisma.product.findMany as unknown as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  jest
-    .mocked(getDb)
-    .mockReturnValue(drizzle(execute) as unknown as ReturnType<typeof getDb>);
+  findMany.mockResolvedValue([]);
 });
 
 it('returns an empty catalog without sample products', async () => {
   await expect(listProducts(new URLSearchParams())).resolves.toEqual([]);
-  expect(execute.mock.calls[0][1]).toContain('ACTIVE');
+  expect(findMany).toHaveBeenCalledWith(
+    expect.objectContaining({ where: { status: 'ACTIVE' } })
+  );
 });
 
-it('binds search and price filters as parameters, with correlated variant queries', async () => {
+it('passes search and price filters as Prisma values', async () => {
   const search = "camiseta' OR 1=1 --";
   await listProducts(
     new URLSearchParams({ search, minPrice: '10', maxPrice: '50' })
   );
-  const [query, params] = execute.mock.calls[0];
-  expect(query).not.toContain(search);
-  expect(query).toContain('exists');
-  expect(query).toContain('ilike');
-  expect(params).toEqual(
-    expect.arrayContaining(['ACTIVE', '10', '50', `%${search}%`])
+
+  const args = findMany.mock.calls[0][0];
+  expect(args.where.status).toBe('ACTIVE');
+  expect(args.where.variants).toEqual({
+    some: { AND: [{ salePrice: { gte: 10 } }, { salePrice: { lte: 50 } }] },
+  });
+  expect(args.where.OR).toEqual(
+    expect.arrayContaining([
+      { name: { contains: search, mode: 'insensitive' } },
+      {
+        category: {
+          is: { name: { contains: search, mode: 'insensitive' } },
+        },
+      },
+      {
+        brand: {
+          is: { name: { contains: search, mode: 'insensitive' } },
+        },
+      },
+      {
+        variants: {
+          some: { sku: { contains: search, mode: 'insensitive' } },
+        },
+      },
+    ])
   );
 });
 
@@ -40,6 +63,6 @@ it.each(['NaN', '-1', 'Infinity'])(
     await expect(
       listProducts(new URLSearchParams({ minPrice }))
     ).rejects.toThrow(RangeError);
-    expect(execute).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
   }
 );

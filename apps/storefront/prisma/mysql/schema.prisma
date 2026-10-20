@@ -1,3 +1,5 @@
+// MySQL schema used for local development and self-hosted environments.
+// Netlify uses prisma/schema.prisma against Netlify Database (PostgreSQL).
 generator client {
   provider = "prisma-client-js"
 }

@@ -1,12 +1,5 @@
-import { and, asc, desc, eq, gte, ilike, lte, or, sql } from 'drizzle-orm';
-import { getDb } from '../../db';
-import {
-  productTable,
-  productVariantTable,
-  categoryTable,
-  brandTable,
-  variationTable,
-} from '../../db/schema';
+import { Prisma } from '@prisma/client';
+import { getDatabaseProvider, prisma } from '@/lib/prisma';
 import { getProductImageUrl } from '@/lib/product-image';
 
 const colorMap: Record<string, string> = {
@@ -30,103 +23,97 @@ function mapColorName(name: string | undefined) {
   );
 }
 
+/**
+ * PostgreSQL `contains` is case-sensitive; MySQL's default collation is not.
+ * Prisma only accepts `mode` for PostgreSQL, so add it conditionally.
+ */
+function textFilter(value: string) {
+  const filter: { contains: string; mode?: 'insensitive' } = {
+    contains: value,
+  };
+  if (getDatabaseProvider() === 'postgresql') {
+    filter.mode = 'insensitive';
+  }
+  return filter;
+}
+
+function parsePrice(value: string | null) {
+  if (value === null || value === '') return undefined;
+  const price = Number(value);
+  if (!Number.isFinite(price) || price < 0) {
+    throw new RangeError('Preço inválido.');
+  }
+  return price;
+}
+
 export async function listProducts(searchParams: URLSearchParams) {
   const id = searchParams.get('id');
   const category = searchParams.get('category');
   const brand = searchParams.get('brand');
-  const minPrice = searchParams.get('minPrice');
-  const maxPrice = searchParams.get('maxPrice');
+  const minPrice = parsePrice(searchParams.get('minPrice'));
+  const maxPrice = parsePrice(searchParams.get('maxPrice'));
   const search = searchParams.get('search');
 
-  const db = getDb();
-  const conditions = [eq(productTable.status, 'ACTIVE')];
-  if (id) conditions.push(eq(productTable.id, id));
-  if (category)
-    conditions.push(
-      or(eq(categoryTable.slug, category), eq(categoryTable.name, category))!
-    );
-  if (brand)
-    conditions.push(
-      or(eq(brandTable.slug, brand), eq(brandTable.name, brand))!
-    );
+  const where: Prisma.ProductWhereInput = {
+    status: 'ACTIVE',
+  };
 
-  const priceConditions = [];
-  for (const [value, compare] of [
-    [minPrice, gte],
-    [maxPrice, lte],
-  ] as const) {
-    if (value === null || value === '') continue;
-    const price = Number(value);
-    if (!Number.isFinite(price) || price < 0) {
-      throw new RangeError('Preço inválido.');
+  if (id) {
+    where.id = id;
+  }
+
+  if (category) {
+    where.category = {
+      is: { OR: [{ slug: category }, { name: category }] },
+    };
+  }
+
+  if (brand) {
+    where.brand = {
+      is: { OR: [{ slug: brand }, { name: brand }] },
+    };
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    const priceConditions: Prisma.ProductVariantWhereInput[] = [];
+    if (minPrice !== undefined) {
+      priceConditions.push({ salePrice: { gte: minPrice } });
     }
-    priceConditions.push(compare(productVariantTable.salePrice, String(price)));
+    if (maxPrice !== undefined) {
+      priceConditions.push({ salePrice: { lte: maxPrice } });
+    }
+    where.variants = { some: { AND: priceConditions } };
   }
-  if (priceConditions.length) {
-    conditions.push(
-      sql`exists (${db
-        .select({ id: productVariantTable.id })
-        .from(productVariantTable)
-        .where(
-          and(
-            eq(productVariantTable.productId, productTable.id),
-            ...priceConditions
-          )
-        )})`
-    );
-  }
+
   if (search) {
-    const pattern = `%${search}%`;
-    conditions.push(
-      or(
-        ilike(productTable.name, pattern),
-        ilike(categoryTable.name, pattern),
-        ilike(brandTable.name, pattern),
-        sql`exists (${db
-          .select({ id: productVariantTable.id })
-          .from(productVariantTable)
-          .where(
-            and(
-              eq(productVariantTable.productId, productTable.id),
-              ilike(productVariantTable.sku, pattern)
-            )
-          )})`
-      )!
-    );
+    where.OR = [
+      { name: textFilter(search) },
+      { category: { is: { name: textFilter(search) } } },
+      { brand: { is: { name: textFilter(search) } } },
+      { variants: { some: { sku: textFilter(search) } } },
+    ];
   }
 
-  const rows = await db
-    .select({
-      product: productTable,
-      variation: variationTable,
-      variant: productVariantTable,
-    })
-    .from(productTable)
-    .leftJoin(categoryTable, eq(productTable.categoryId, categoryTable.id))
-    .leftJoin(brandTable, eq(productTable.brandId, brandTable.id))
-    .leftJoin(variationTable, eq(productTable.variationId, variationTable.id))
-    .leftJoin(
-      productVariantTable,
-      eq(productVariantTable.productId, productTable.id)
-    )
-    .where(and(...conditions))
-    .orderBy(desc(productTable.updatedAt), asc(productVariantTable.salePrice));
+  const products = await prisma.product.findMany({
+    where,
+    include: {
+      variation: true,
+      variants: {
+        include: {
+          inventory: true,
+        },
+        orderBy: {
+          salePrice: 'asc',
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: 'desc',
+    },
+  });
 
-  const grouped = new Map<string, typeof rows>();
-  for (const row of rows) {
-    const group = grouped.get(row.product.id) ?? [];
-    group.push(row);
-    grouped.set(row.product.id, group);
-  }
-  const products = Array.from(grouped.values(), (group) => ({
-    ...group[0].product,
-    variation: group[0].variation,
-    variants: group.flatMap((row) => (row.variant ? [row.variant] : [])),
-  }));
-
-  // Transform to match the expected format for storefront components
-  const formattedProducts = products.map((product) => {
-    // Get the first variant (or default variant)
+  // Transform to match the expected format for storefront components.
+  return products.map((product) => {
     const defaultVariant = product.variants[0];
 
     return {
@@ -139,12 +126,10 @@ export async function listProducts(searchParams: URLSearchParams) {
       sizes: Array.from(
         new Set(
           product.variants
-            .map((v) => v.label?.split(' / ')[1] || 'Único')
+            .map((variant) => variant.label?.split(' / ')[1] || 'Único')
             .filter(Boolean)
         )
       ),
     };
   });
-
-  return formattedProducts;
 }

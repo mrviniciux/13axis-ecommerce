@@ -1,3 +1,5 @@
+// PostgreSQL schema used by Netlify Database.
+// Local MySQL uses prisma/mysql/schema.prisma.
 generator client {
   provider = "prisma-client-js"
   engineType = "client"
@@ -156,22 +158,24 @@ model Product {
   name        String          @db.VarChar(180)
   slug        String          @unique @db.VarChar(200)
   description String?         @db.Text
-  categoryId  String?
+  categoryId  String?         @map("category_id")
   category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  brandId     String?
+  brandId     String?         @map("brand_id")
   brand       Brand?          @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  variationId String?
+  variationId String?         @map("variation_id")
   variation   Variation?      @relation(fields: [variationId], references: [id], onDelete: SetNull)
   status      ProductStatus   @default(DRAFT)
   image       String?         @db.Text
   variants    ProductVariant[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
 
   @@index([status, categoryId])
   @@index([brandId])
   @@index([variationId])
   @@index([updatedAt])
+
+  @@map("product")
 }
 
 model ProductVariant {

@@ -1,4 +1,4 @@
-FROM node:20.17.0-alpine AS base
+FROM node:22-alpine AS base
 
 WORKDIR /app
 
@@ -10,17 +10,17 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/storefront/package.json ./apps/storefront/package.json
 COPY apps/storefront/prisma ./apps/storefront/prisma
 RUN pnpm install --frozen-lockfile --registry https://registry.npmjs.org
-RUN pnpm --filter @13axis/storefront exec prisma generate --schema prisma/schema.prisma
-RUN pnpm --filter @13axis/storefront exec prisma generate --schema prisma/schema.prisma
+RUN pnpm --filter @13axis/storefront exec prisma generate --schema prisma/mysql/schema.prisma
 
 FROM base AS builder
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_PROVIDER=mysql
 ENV DATABASE_URL=mysql://axis_admin:axis_local_password@db:3306/axis_store
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm --filter @13axis/storefront exec prisma generate --schema prisma/schema.prisma
+RUN pnpm --filter @13axis/storefront exec prisma generate --schema prisma/mysql/schema.prisma
 RUN pnpm build
 
 FROM base AS runner

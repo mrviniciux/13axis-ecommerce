@@ -2,30 +2,16 @@
   base = "apps/storefront"
   command = "pnpm build"
   publish = ".next"
-  function_directory = ".netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
   NEXT_PUBLIC_API_URL = ""
+  # Netlify Database is PostgreSQL. Local development defaults to MySQL.
+  DATABASE_PROVIDER = "postgresql"
 
 [dev]
   command = "pnpm dev"
   port = 3000
-
-[[redirects]]
-  from = "/br/*"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/us/*"
-  to = "/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/admin/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
 
 [[headers]]
   for = "/api/*"
