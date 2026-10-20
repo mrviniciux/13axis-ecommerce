@@ -1,9 +1,10 @@
 import { defineRouting } from 'next-intl/routing';
 import { createNavigation } from 'next-intl/navigation';
+import { defaultLocale, localeOptions } from '@/config/i18n';
 
 export const routing = defineRouting({
-  locales: ['en-US', 'pt-BR'],
-  defaultLocale: 'pt-BR',
+  locales: localeOptions.map((option) => option.value),
+  defaultLocale,
   localePrefix: {
     mode: 'always',
     prefixes: {

@@ -3,6 +3,7 @@ import { Montserrat } from 'next/font/google';
 
 import '../styles/globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { defaultLocale } from '@/config/i18n';
 
 const montserrat = Montserrat({
   display: 'swap',
@@ -33,7 +34,7 @@ export default async function RootLayout({
 
   return (
     <html
-      lang={locale ?? 'pt-BR'}
+      lang={locale ?? defaultLocale}
       className={montserrat.variable}
       suppressHydrationWarning
     >

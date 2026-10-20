@@ -17,6 +17,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from '@/i18n/routing';
+import { localeOptions } from '@/config/i18n';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -43,11 +44,6 @@ const quickLinks: {
   { id: 'tracking', label: 'tracking', icon: Truck },
   { id: 'account', label: 'account', icon: CircleUserRound },
 ];
-
-const localeOptions = [
-  { value: 'pt-BR', label: 'portuguese', flag: '🇧🇷' },
-  { value: 'en-US', label: 'english', flag: '🇺🇸' },
-] as const;
 
 type LocaleOption = (typeof localeOptions)[number]['value'];
 
