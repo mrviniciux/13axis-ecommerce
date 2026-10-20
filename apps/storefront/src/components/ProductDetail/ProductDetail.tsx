@@ -134,7 +134,9 @@ function ProductDetail({ product }: { product: ProductFromApi }) {
                               ? '#888888'
                               : product.color === 'green'
                                 ? '#526c57'
-                                : '#d995a5',
+                                : product.color === 'brown'
+                                  ? '#6f4e37'
+                                  : '#d995a5',
                   }}
                 />
               </div>

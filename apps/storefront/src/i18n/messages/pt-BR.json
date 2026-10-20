@@ -17,10 +17,10 @@
     "emptyDescription": "Tente alterar ou limpar os filtros selecionados.",
     "colors": {
       "black": "Preto",
-      "blue": "Azul-marinho",
+      "blue": "Azul",
       "gray": "Cinza",
       "green": "Verde",
-      "pink": "Rosa",
+      "brown": "Marrom",
       "white": "Branco"
     },
     "items": {

@@ -17,10 +17,10 @@
     "emptyDescription": "Try changing or clearing the selected filters.",
     "colors": {
       "black": "Black",
-      "blue": "Navy",
+      "blue": "Blue",
       "gray": "Gray",
       "green": "Green",
-      "pink": "Pink",
+      "brown": "Brown",
       "white": "White"
     },
     "items": {

@@ -3,21 +3,53 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { getProductImageUrl, productImageSchema } from '@/lib/product-image';
+
+const catalogRefSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(191)
+  .nullable()
+  .optional();
 
 const productSchema = z.object({
   name: z.string().trim().min(2).max(180),
   sku: z.string().trim().min(2).max(100),
-  barcode: z.string().trim().max(100).optional(),
-  category: z.string().trim().max(100).optional(),
-  brand: z.string().trim().max(100).optional(),
-  variantLabel: z.string().trim().max(120).optional(),
+  barcode: z.string().trim().max(100).nullable().optional(),
+  categoryId: catalogRefSchema,
+  brandId: catalogRefSchema,
+  variationId: catalogRefSchema,
+  variantLabel: z.string().trim().max(120).nullable().optional(),
   costPrice: z.number().finite().min(0),
   salePrice: z.number().finite().min(0),
   initialStock: z.number().int().min(0),
   reorderPoint: z.number().int().min(0),
   status: z.nativeEnum(ProductStatus),
-  image: z.string().url().optional(), // URL da imagem do produto
+  image: productImageSchema,
 });
+
+async function findCatalogName(
+  model: 'category' | 'brand' | 'variation',
+  id: string
+) {
+  const record =
+    model === 'category'
+      ? await prisma.category.findUnique({
+          where: { id },
+          select: { name: true },
+        })
+      : model === 'brand'
+        ? await prisma.brand.findUnique({
+            where: { id },
+            select: { name: true },
+          })
+        : await prisma.variation.findUnique({
+            where: { id },
+            select: { name: true },
+          });
+  return record?.name ?? null;
+}
 
 function slugify(value: string) {
   return value
@@ -42,10 +74,20 @@ export async function GET(request: Request) {
 
   try {
     const products = await prisma.product.findMany({
-      include: { variants: { include: { inventory: true } } },
+      include: {
+        variants: { include: { inventory: true } },
+        category: true,
+        brand: true,
+        variation: true,
+      },
       orderBy: { updatedAt: 'desc' },
     });
-    return NextResponse.json({ products });
+    return NextResponse.json({
+      products: products.map((product) => ({
+        ...product,
+        image: getProductImageUrl(product.image, product.id, product.updatedAt),
+      })),
+    });
   } catch (error) {
     return NextResponse.json(
       { error: 'Erro ao buscar produtos.' },
@@ -76,12 +118,22 @@ export async function POST(request: Request) {
 
   const data = parsed.data;
   try {
+    const categoryName = data.categoryId
+      ? await findCatalogName('category', data.categoryId)
+      : null;
+    const brandName = data.brandId
+      ? await findCatalogName('brand', data.brandId)
+      : null;
+    const variationName = data.variationId
+      ? await findCatalogName('variation', data.variationId)
+      : null;
     const product = await prisma.product.create({
       data: {
         name: data.name,
         slug: `${slugify(data.name)}-${crypto.randomUUID().slice(0, 8)}`,
-        category: data.category || null,
-        brand: data.brand || null,
+        categoryId: data.categoryId || null,
+        brandId: data.brandId || null,
+        variationId: data.variationId || null,
         status: data.status,
         image: data.image || null,
         variants: {
@@ -89,9 +141,12 @@ export async function POST(request: Request) {
             sku: data.sku.toUpperCase(),
             barcode: data.barcode || null,
             label: data.variantLabel || null,
-            attributes: data.variantLabel
-              ? { label: data.variantLabel }
-              : undefined,
+            attributes: {
+              ...(data.variantLabel ? { label: data.variantLabel } : {}),
+              ...(categoryName ? { category: categoryName } : {}),
+              ...(brandName ? { brand: brandName } : {}),
+              ...(variationName ? { variation: variationName } : {}),
+            },
             costPrice: data.costPrice,
             salePrice: data.salePrice,
             inventory: {
@@ -114,9 +169,26 @@ export async function POST(request: Request) {
           },
         },
       },
-      include: { variants: { include: { inventory: true } } },
+      include: {
+        variants: { include: { inventory: true } },
+        category: true,
+        brand: true,
+        variation: true,
+      },
     });
-    return NextResponse.json({ product }, { status: 201 });
+    return NextResponse.json(
+      {
+        product: {
+          ...product,
+          image: getProductImageUrl(
+            product.image,
+            product.id,
+            product.updatedAt
+          ),
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(

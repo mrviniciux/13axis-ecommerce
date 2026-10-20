@@ -1,11 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
+import useProducts from '@/hooks/useProducts';
+import { ProductFromApi } from '@/types/product';
 
-const colors = ['black', 'blue', 'gray', 'green', 'pink', 'white'] as const;
+const colors = ['black', 'blue', 'gray', 'green', 'brown', 'white'] as const;
 const sizes = ['P', 'M', 'G', 'GG'] as const;
 
 const colorValues: Record<(typeof colors)[number], string> = {
@@ -13,68 +14,31 @@ const colorValues: Record<(typeof colors)[number], string> = {
   blue: '#254a75',
   gray: '#888888',
   green: '#526c57',
-  pink: '#d995a5',
+  brown: '#6f4e37',
   white: '#ffffff',
 };
-
-interface ProductFromApi {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  color: string;
-  sizes: string[];
-}
 
 function ProductListing() {
   const t = useTranslations('products');
   const locale = useLocale();
-  const [products, setProducts] = useState<ProductFromApi[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [minimumPrice, setMinimumPrice] = useState('');
-  const [maximumPrice, setMaximumPrice] = useState('');
-
-  useEffect(() => {
-    async function fetchProducts() {
-      const params = new URLSearchParams();
-      if (minimumPrice) params.set('minPrice', minimumPrice);
-      if (maximumPrice) params.set('maxPrice', maximumPrice);
-
-      const response = await fetch(`/api/products?${params.toString()}`);
-      const data = await response.json();
-      setProducts(data.products || []);
-      setLoading(false);
-    }
-
-    fetchProducts();
-  }, [minimumPrice, maximumPrice]);
-
-  const filteredProducts = useMemo(() => {
-    const min = minimumPrice === '' ? null : Number(minimumPrice);
-    const max = maximumPrice === '' ? null : Number(maximumPrice);
-
-    return products.filter(
-      (product) =>
-        (selectedColors.length === 0 ||
-          selectedColors.includes(product.color)) &&
-        (selectedSizes.length === 0 ||
-          product.sizes.some((size) => selectedSizes.includes(size))) &&
-        (min === null || product.price >= min) &&
-        (max === null || product.price <= max)
-    );
-  }, [maximumPrice, minimumPrice, products, selectedColors, selectedSizes]);
+  const {
+    loading,
+    hasActiveFilters,
+    filteredProducts,
+    selectedColors,
+    selectedSizes,
+    minimumPrice,
+    maximumPrice,
+    setSelectedColors,
+    setSelectedSizes,
+    setMinimumPrice,
+    setMaximumPrice,
+  } = useProducts();
 
   const currency = new Intl.NumberFormat(
     locale === 'pt-BR' ? 'pt-BR' : 'en-US',
     { style: 'currency', currency: 'BRL' }
   );
-  const hasActiveFilters =
-    selectedColors.length > 0 ||
-    selectedSizes.length > 0 ||
-    minimumPrice !== '' ||
-    maximumPrice !== '';
 
   function toggleValue(
     value: string,
@@ -233,7 +197,7 @@ function ProductListing() {
             </div>
           ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product: ProductFromApi) => (
                 <article
                   key={product.id}
                   className="overflow-hidden rounded-lg border border-border bg-background transition-shadow hover:shadow-md"

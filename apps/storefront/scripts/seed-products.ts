@@ -1,5 +1,9 @@
-import { prisma } from '../src/lib/prisma';
 import { Prisma, ProductStatus } from '@prisma/client';
+import { prisma } from '../src/lib/prisma';
+
+const categories = ['Calça', 'Camiseta', 'Moletom', 'Jaqueta', 'Calçado'];
+const brands = ['Nike', 'Adidas', 'MCD'];
+const variations = ['Preto', 'Branco', 'Cinza', 'Azul', 'Marrom', 'Verde'];
 
 function slugify(value: string) {
   return value
@@ -10,16 +14,47 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, '');
 }
 
+async function seedCatalogs() {
+  for (const [index, name] of categories.entries()) {
+    await prisma.category.upsert({
+      where: { name },
+      update: {},
+      create: { name, slug: slugify(name), position: index },
+    });
+  }
+  for (const [index, name] of brands.entries()) {
+    await prisma.brand.upsert({
+      where: { name },
+      update: {},
+      create: { name, slug: slugify(name), position: index },
+    });
+  }
+  for (const [index, name] of variations.entries()) {
+    await prisma.variation.upsert({
+      where: { name },
+      update: {},
+      create: { name, slug: slugify(name), position: index },
+    });
+  }
+  console.log(
+    `Catálogos: ${categories.length} categorias, ${brands.length} marcas e ${variations.length} variações.`
+  );
+}
+
 async function main() {
+  await seedCatalogs();
+
   const products = [
     {
       name: 'Camiseta Essencial Algodão',
       slug: 'camiseta-esencial-algodao',
       description: 'Camiseta básica de algodão para uso diário.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      category: 'Camiseta',
+      brand: 'MCD',
+      variation: 'Branco',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80',
+      image:
+        'https://images.pexels.com/photos/18257675/pexels-photo-18257675.jpeg?auto=compress&cs=tinysrgb&w=800',
       variantLabel: 'Branco / M',
       costPrice: 35.0,
       salePrice: 79.9,
@@ -30,10 +65,12 @@ async function main() {
       name: 'Camiseta Preta Clássica',
       slug: 'camiseta-preta-classica',
       description: 'Camiseta preta clássica, corte tradicional.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      category: 'Camiseta',
+      brand: 'MCD',
+      variation: 'Preto',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80',
+      image:
+        'https://images.pexels.com/photos/8532616/pexels-photo-8532616.jpeg?auto=compress&cs=tinysrgb&w=800',
       variantLabel: 'Preto / M',
       costPrice: 40.0,
       salePrice: 89.9,
@@ -44,38 +81,28 @@ async function main() {
       name: 'Camiseta Oversized Grafite',
       slug: 'camiseta-oversized-grafite',
       description: 'Camiseta oversized em tom grafite.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      category: 'Camiseta',
+      brand: 'Adidas',
+      variation: 'Cinza',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80',
-      variantLabel: 'Grafite / G',
+      image:
+        'https://images.pexels.com/photos/6311588/pexels-photo-6311588.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Cinza / G',
       costPrice: 55.0,
       salePrice: 119.9,
       initialStock: 30,
       reorderPoint: 8,
     },
     {
-      name: 'Camiseta Rosa Suave',
-      slug: 'camiseta-rosa-suave',
-      description: 'Camiseta rosa suave, estilo delicado.',
-      category: 'Camisetas',
-      brand: '13Axis',
-      status: ProductStatus.ACTIVE,
-      image: 'https://images.pexels.com/photos/6311392/pexels-photo-6311392.jpeg?auto=compress&cs=tinysrgb&w=800',
-      variantLabel: 'Rosa / P',
-      costPrice: 45.0,
-      salePrice: 94.9,
-      initialStock: 35,
-      reorderPoint: 8,
-    },
-    {
       name: 'Camiseta Azul Básica',
       slug: 'camiseta-azul-basica',
       description: 'Camiseta azul básica, cor versátil.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      category: 'Camiseta',
+      brand: 'Nike',
+      variation: 'Azul',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=crop&w=800&q=80',
+      image:
+        'https://images.pexels.com/photos/13651809/pexels-photo-13651809.jpeg?auto=compress&cs=tinysrgb&w=800',
       variantLabel: 'Azul / G',
       costPrice: 40.0,
       salePrice: 84.9,
@@ -86,10 +113,12 @@ async function main() {
       name: 'Camiseta Verde Terroso',
       slug: 'camiseta-verde-terroso',
       description: 'Camiseta verde terroso, estilo natural.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      category: 'Camiseta',
+      brand: 'Adidas',
+      variation: 'Verde',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80',
+      image:
+        'https://images.pexels.com/photos/13400104/pexels-photo-13400104.jpeg?auto=compress&cs=tinysrgb&w=800',
       variantLabel: 'Verde / M',
       costPrice: 48.0,
       salePrice: 99.9,
@@ -97,44 +126,183 @@ async function main() {
       reorderPoint: 8,
     },
     {
-      name: 'Camiseta Branca Everyday',
-      slug: 'camiseta-branca-everyday',
-      description: 'Camiseta branca para uso cotidiano.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      name: 'Moletom Cinza Conforto',
+      slug: 'moletom-cinza-conforto',
+      description: 'Moletom com capuz em tom cinza.',
+      category: 'Moletom',
+      brand: 'Nike',
+      variation: 'Cinza',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=800&q=80',
-      variantLabel: 'Branco / P',
-      costPrice: 32.0,
-      salePrice: 69.9,
-      initialStock: 60,
-      reorderPoint: 12,
+      image:
+        'https://images.pexels.com/photos/38575395/pexels-photo-38575395.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Cinza / G',
+      costPrice: 90.0,
+      salePrice: 199.9,
+      initialStock: 18,
+      reorderPoint: 5,
     },
     {
-      name: 'Camiseta Preta Urbana',
-      slug: 'camiseta-preta-urbana',
-      description: 'Camiseta preta com estilo urbano.',
-      category: 'Camisetas',
-      brand: '13Axis',
+      name: 'Moletom Preto Urbano',
+      slug: 'moletom-preto-urbano',
+      description: 'Moletom preto de corte urbano.',
+      category: 'Moletom',
+      brand: 'MCD',
+      variation: 'Preto',
       status: ProductStatus.ACTIVE,
-      image: 'https://images.unsplash.com/photo-1627225924765-552d49cf47ad?auto=format&fit=crop&w=800&q=80',
-      variantLabel: 'Preto / G',
-      costPrice: 50.0,
-      salePrice: 109.9,
-      initialStock: 20,
-      reorderPoint: 8,
+      image:
+        'https://images.pexels.com/photos/28701960/pexels-photo-28701960.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Preto / M',
+      costPrice: 95.0,
+      salePrice: 219.9,
+      initialStock: 22,
+      reorderPoint: 6,
+    },
+    {
+      name: 'Calça Jeans Marrom',
+      slug: 'calca-jeans-marrom',
+      description: 'Calça jeans em tom marrom.',
+      category: 'Calça',
+      brand: 'Adidas',
+      variation: 'Marrom',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/33041362/pexels-photo-33041362.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Marrom / 40',
+      costPrice: 110.0,
+      salePrice: 249.9,
+      initialStock: 15,
+      reorderPoint: 4,
+    },
+    {
+      name: 'Calça Cargo Preta',
+      slug: 'calca-cargo-preta',
+      description: 'Calça cargo preta com bolsos laterais.',
+      category: 'Calça',
+      brand: 'Nike',
+      variation: 'Preto',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/35043249/pexels-photo-35043249.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Preto / 42',
+      costPrice: 105.0,
+      salePrice: 239.9,
+      initialStock: 12,
+      reorderPoint: 4,
+    },
+    {
+      name: 'Jaqueta Corta-Vento Azul',
+      slug: 'jaqueta-corta-vento-azul',
+      description: 'Jaqueta corta-vento leve em azul.',
+      category: 'Jaqueta',
+      brand: 'Adidas',
+      variation: 'Azul',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/9502482/pexels-photo-9502482.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Azul / G',
+      costPrice: 150.0,
+      salePrice: 349.9,
+      initialStock: 10,
+      reorderPoint: 3,
+    },
+    {
+      name: 'Jaqueta Jeans Verde',
+      slug: 'jaqueta-jeans-verde',
+      description: 'Jaqueta jeans em tom verde.',
+      category: 'Jaqueta',
+      brand: 'MCD',
+      variation: 'Verde',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/14688296/pexels-photo-14688296.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Verde / M',
+      costPrice: 145.0,
+      salePrice: 329.9,
+      initialStock: 8,
+      reorderPoint: 3,
+    },
+    {
+      name: 'Tênis Branco Clássico',
+      slug: 'tenis-branco-classico',
+      description: 'Tênis branco de couro, estilo clássico.',
+      category: 'Calçado',
+      brand: 'Nike',
+      variation: 'Branco',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/18110858/pexels-photo-18110858.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Branco / 41',
+      costPrice: 180.0,
+      salePrice: 399.9,
+      initialStock: 14,
+      reorderPoint: 4,
+    },
+    {
+      name: 'Tênis Preto Runner',
+      slug: 'tenis-preto-runner',
+      description: 'Tênis preto para corrida.',
+      category: 'Calçado',
+      brand: 'Adidas',
+      variation: 'Preto',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/29096394/pexels-photo-29096394.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Preto / 42',
+      costPrice: 190.0,
+      salePrice: 419.9,
+      initialStock: 16,
+      reorderPoint: 5,
+    },
+    {
+      name: 'Calçado Marrom Casual',
+      slug: 'calcado-marrom-casual',
+      description: 'Sapato casual marrom.',
+      category: 'Calçado',
+      brand: 'MCD',
+      variation: 'Marrom',
+      status: ProductStatus.ACTIVE,
+      image:
+        'https://images.pexels.com/photos/6961151/pexels-photo-6961151.jpeg?auto=compress&cs=tinysrgb&w=800',
+      variantLabel: 'Marrom / 40',
+      costPrice: 160.0,
+      salePrice: 359.9,
+      initialStock: 9,
+      reorderPoint: 3,
     },
   ];
 
   for (const product of products) {
+    const [category, brand, variation] = await Promise.all([
+      prisma.category.findUnique({ where: { name: product.category } }),
+      prisma.brand.findUnique({ where: { name: product.brand } }),
+      prisma.variation.findUnique({ where: { name: product.variation } }),
+    ]);
+
+    const existing = await prisma.product.findUnique({
+      where: { slug: product.slug },
+      select: { id: true },
+    });
+
+    if (existing) {
+      // Keep the demo catalog's images in sync with this file without
+      // overwriting other fields that may have been edited in the admin.
+      await prisma.product.update({
+        where: { id: existing.id },
+        data: { image: product.image },
+      });
+      console.log(`Produto atualizado (imagem): ${product.name}`);
+      continue;
+    }
+
     try {
       const created = await prisma.product.create({
         data: {
           name: product.name,
           slug: product.slug,
           description: product.description,
-          category: product.category,
-          brand: product.brand,
+          categoryId: category?.id ?? null,
+          brandId: brand?.id ?? null,
+          variationId: variation?.id ?? null,
           status: product.status,
           image: product.image,
           variants: {
@@ -142,7 +310,12 @@ async function main() {
               sku: `${slugify(product.name).toUpperCase()}-M`,
               barcode: null,
               label: product.variantLabel,
-              attributes: { label: product.variantLabel },
+              attributes: {
+                label: product.variantLabel,
+                category: product.category,
+                brand: product.brand,
+                variation: product.variation,
+              },
               costPrice: product.costPrice,
               salePrice: product.salePrice,
               inventory: {
@@ -166,13 +339,17 @@ async function main() {
         },
         include: { variants: { include: { inventory: true } } },
       });
-      console.log(`Produto criado: ${created.name} (SKU: ${created.variants[0].sku})`);
+      console.log(
+        `Produto criado: ${created.name} (SKU: ${created.variants[0].sku})`
+      );
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        console.log(`Produto já existe (SKU duplicado): ${product.name}`);
+        console.log(
+          `Produto já existe (slug ou SKU duplicado): ${product.name}`
+        );
       } else {
         throw error;
       }

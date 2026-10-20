@@ -28,7 +28,7 @@ export const products = [
     image:
       'https://images.pexels.com/photos/6311392/pexels-photo-6311392.jpeg?auto=compress&cs=tinysrgb&w=800',
     price: 94.9,
-    color: 'pink',
+    color: 'brown',
     sizes: ['P', 'M', 'G'],
   },
   {

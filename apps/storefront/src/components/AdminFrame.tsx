@@ -10,6 +10,7 @@ import {
   LogOut,
   Package,
   Store,
+  Tags,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -19,6 +20,11 @@ const navigation = [
     href: '/restrict/admin/products',
     label: 'Produtos e estoque',
     icon: Boxes,
+  },
+  {
+    href: '/restrict/admin/catalogs',
+    label: 'Catálogos',
+    icon: Tags,
   },
 ];
 

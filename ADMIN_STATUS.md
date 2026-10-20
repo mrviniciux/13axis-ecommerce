@@ -13,6 +13,8 @@ A área administrativa foi adicionada ao projeto `apps/storefront` e usa as rota
 - Sessões JWT, callback de autorização e proteção server-side das páginas e endpoints; roles previstas: `ADMIN`, `INVENTORY_MANAGER` e `USER`.
 - Dashboard com vendas fictícias claramente identificadas e KPIs de catálogo/estoque consultados do MySQL.
 - Cadastro de produto com categoria, marca, status, variante, SKU, código de barras opcional, atributos, custo, preço de venda, saldo inicial e ponto de reposição.
+- Catálogos de categorias, marcas e variações em `/restrict/admin/catalogs`, com criação, renomeação, inativação e reativação; o cadastro de produtos usa comboboxes pesquisáveis vinculados a esses registros, com filtro que ignora maiúsculas/minúsculas e acentos e cadastro rápido quando o nome digitado não existe.
+- Seed idempotente cria categorias (Calça, Camiseta, Moletom, Jaqueta, Calçado), marcas (Nike, Adidas, MCD) e variações (Preto, Branco, Cinza, Azul, Marrom, Verde) e um catálogo de exemplo.
 - Estoque por variante com saldo físico, reservas e disponibilidade calculada; ajustes pedem quantidade e motivo, registram autor e movimentação, e recusam saldo abaixo das reservas. A gravação usa transação e proteção contra atualização concorrente.
 - Schema relacional Prisma/MySQL para usuário, OAuth, produto, variante, inventário, movimentação, canais de integração e mapeamentos externos de SKU/produto.
 - MySQL 8.4 com volume persistente, healthcheck e serviço de migração Prisma nos Compose de desenvolvimento e produção.

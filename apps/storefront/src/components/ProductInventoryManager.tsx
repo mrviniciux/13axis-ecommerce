@@ -2,23 +2,48 @@
 
 import { useState, type FormEvent, type InputHTMLAttributes } from 'react';
 import {
+  Archive,
   AlertCircle,
   Check,
   ChevronDown,
+  ImagePlus,
+  Pencil,
   Plus,
   RefreshCw,
+  RotateCcw,
   Search,
 } from 'lucide-react';
+import { getProductImageUrl } from '@/lib/product-image';
+import CatalogCombobox from '@/components/CatalogCombobox';
+
+type CatalogOption = {
+  id: string;
+  name: string;
+};
+
+export type CatalogOptions = {
+  categories: CatalogOption[];
+  brands: CatalogOption[];
+  variations: CatalogOption[];
+};
 
 type InventoryProduct = {
   id: string;
   name: string;
-  category: string | null;
+  description: string | null;
+  categoryId: string | null;
+  brandId: string | null;
+  variationId: string | null;
+  category: { id: string; name: string } | null;
+  brand: { id: string; name: string } | null;
+  variation: { id: string; name: string } | null;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
   image: string | null;
+  updatedAt?: string | Date;
   variants: {
     id: string;
     sku: string;
+    barcode: string | null;
     label: string | null;
     costPrice: string | number;
     salePrice: string | number;
@@ -38,11 +63,25 @@ const currency = new Intl.NumberFormat('pt-BR', {
 
 export default function ProductInventoryManager({
   initialProducts,
+  categories,
+  brands,
+  variations,
 }: {
   initialProducts: InventoryProduct[];
-}) {
+} & CatalogOptions) {
   const [products, setProducts] = useState(initialProducts);
+  const [catalogOptions, setCatalogOptions] = useState<CatalogOptions>({
+    categories,
+    brands,
+    variations,
+  });
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<InventoryProduct | null>(
+    null
+  );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState<{ text: string; error: boolean } | null>(
     null
@@ -56,48 +95,163 @@ export default function ProductInventoryManager({
   const [adjustmentQuantity, setAdjustmentQuantity] = useState(1);
   const [adjustmentNote, setAdjustmentNote] = useState('');
 
-  async function createProduct(event: FormEvent<HTMLFormElement>) {
+  function registerCatalogOption(
+    resource: keyof CatalogOptions,
+    option: CatalogOption
+  ) {
+    setCatalogOptions((current) =>
+      current[resource].some((candidate) => candidate.id === option.id)
+        ? current
+        : { ...current, [resource]: [...current[resource], option] }
+    );
+  }
+
+  async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
     setNotice(null);
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const payload = {
-      name: String(formData.get('name')),
-      sku: String(formData.get('sku')),
-      barcode: String(formData.get('barcode')) || undefined,
-      category: String(formData.get('category')) || undefined,
-      brand: String(formData.get('brand')) || undefined,
-      variantLabel: String(formData.get('variantLabel')) || undefined,
-      image: String(formData.get('image')) || undefined,
-      costPrice: Number(formData.get('costPrice')),
-      salePrice: Number(formData.get('salePrice')),
-      initialStock: Number(formData.get('initialStock')),
-      reorderPoint: Number(formData.get('reorderPoint')),
-      status: String(formData.get('status')),
-    };
+    try {
+      const payload: Record<string, string | number | null> = {
+        name: String(formData.get('name')),
+        description: String(formData.get('description')) || null,
+        sku: String(formData.get('sku')),
+        barcode: String(formData.get('barcode')) || null,
+        categoryId: String(formData.get('categoryId')) || null,
+        brandId: String(formData.get('brandId')) || null,
+        variationId: String(formData.get('variationId')) || null,
+        variantLabel: String(formData.get('variantLabel')) || null,
+        costPrice: Number(formData.get('costPrice')),
+        salePrice: Number(formData.get('salePrice')),
+        reorderPoint: Number(formData.get('reorderPoint')),
+        status: String(formData.get('status')),
+      };
+      if (!editingProduct) {
+        payload.initialStock = Number(formData.get('initialStock'));
+      } else {
+        payload.variantId = editingProduct.variants[0].id;
+        if (removeImage) payload.image = null;
+      }
+      if (selectedImage?.size) {
+        if (selectedImage.size > 2 * 1024 * 1024) {
+          throw new Error('A imagem deve ter no máximo 2 MB.');
+        }
+        if (
+          !['image/jpeg', 'image/png', 'image/webp'].includes(
+            selectedImage.type
+          )
+        ) {
+          throw new Error('Use uma imagem JPEG, PNG ou WebP.');
+        }
+        payload.image = await readImageAsDataUrl(selectedImage);
+      }
 
-    const response = await fetch('/api/admin/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const result = await response.json();
-    setSaving(false);
-    if (!response.ok) {
+      const response = await fetch(
+        editingProduct
+          ? `/api/admin/products/${editingProduct.id}`
+          : '/api/admin/products',
+        {
+          method: editingProduct ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        setNotice({
+          text: result.error ?? 'Não foi possível salvar o produto.',
+          error: true,
+        });
+        return;
+      }
+      const savedProduct: InventoryProduct = {
+        ...result.product,
+        image: getProductImageUrl(
+          result.product.image,
+          result.product.id,
+          result.product.updatedAt
+        ),
+      };
+      setProducts((current) =>
+        editingProduct
+          ? current.map((product) =>
+              product.id === savedProduct.id ? savedProduct : product
+            )
+          : [savedProduct, ...current]
+      );
       setNotice({
-        text: result.error ?? 'Não foi possível cadastrar o produto.',
+        text: editingProduct
+          ? 'Produto atualizado.'
+          : 'Produto cadastrado e saldo inicial registrado.',
+        error: false,
+      });
+      form.reset();
+      setShowForm(false);
+      setEditingProduct(null);
+      setImagePreview(null);
+      setSelectedImage(null);
+      setRemoveImage(false);
+    } catch (error) {
+      setNotice({
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível salvar o produto.',
         error: true,
       });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateProductStatus(product: InventoryProduct) {
+    const archiving = product.status !== 'ARCHIVED';
+    if (
+      archiving &&
+      !window.confirm(
+        `Inativar "${product.name}"? Ele será removido da loja, mas o histórico de estoque será preservado.`
+      )
+    ) {
       return;
     }
-    setProducts((current) => [result.product, ...current]);
-    setNotice({
-      text: 'Produto cadastrado e saldo inicial registrado.',
-      error: false,
-    });
-    form.reset();
-    setShowForm(false);
+    setSaving(true);
+    setNotice(null);
+    try {
+      const response = archiving
+        ? await fetch(`/api/admin/products/${product.id}`, { method: 'DELETE' })
+        : await fetch(`/api/admin/products/${product.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'ACTIVE' }),
+          });
+      const result = await response.json();
+      if (!response.ok) {
+        setNotice({
+          text: result.error ?? 'Não foi possível alterar o status do produto.',
+          error: true,
+        });
+        return;
+      }
+      setProducts((current) =>
+        current.map((item) =>
+          item.id === product.id ? { ...item, status: result.status } : item
+        )
+      );
+      setNotice({
+        text: archiving
+          ? 'Produto inativado; o histórico foi preservado.'
+          : 'Produto reativado.',
+        error: false,
+      });
+    } catch {
+      setNotice({
+        text: 'Não foi possível alterar o status do produto.',
+        error: true,
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function adjustStock(
@@ -159,7 +313,7 @@ export default function ProductInventoryManager({
   }
 
   const visibleProducts = products.filter((product) =>
-    `${product.name} ${product.category ?? ''} ${product.variants.map((variant) => variant.sku).join(' ')}`
+    `${product.name} ${product.category?.name ?? ''} ${product.brand?.name ?? ''} ${product.variation?.name ?? ''} ${product.variants.map((variant) => variant.sku).join(' ')}`
       .toLowerCase()
       .includes(search.toLowerCase())
   );
@@ -186,32 +340,41 @@ export default function ProductInventoryManager({
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar produto, categoria ou SKU"
+            placeholder="Buscar produto, categoria, marca ou SKU"
             aria-label="Buscar produtos"
             className="h-10 w-full border border-[#dce2dc] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#58806e] focus:ring-2 focus:ring-[#58806e]/15"
           />
         </label>
         <button
           type="button"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditingProduct(null);
+            setImagePreview(null);
+            setSelectedImage(null);
+            setRemoveImage(false);
+          }}
           className="inline-flex h-10 items-center gap-2 bg-[#183c35] px-4 text-sm font-medium text-white hover:bg-[#28584c]"
         >
           {showForm ? <ChevronDown size={16} /> : <Plus size={16} />}
-          {showForm ? 'Fechar cadastro' : 'Cadastrar produto'}
+          {showForm ? 'Fechar formulário' : 'Cadastrar produto'}
         </button>
       </div>
 
       {showForm && (
         <form
-          onSubmit={createProduct}
+          key={editingProduct?.id ?? 'new-product'}
+          onSubmit={saveProduct}
           className="border border-[#e0e6e0] bg-[#fbfcfa] p-5 sm:p-6"
         >
           <div className="mb-5">
             <h2 className="text-sm font-semibold text-[#29332f]">
-              Novo produto
+              {editingProduct ? 'Editar produto' : 'Novo produto'}
             </h2>
             <p className="mt-1 text-xs text-[#87918c]">
-              Cadastre a identificação comercial, a variante e o saldo inicial.
+              {editingProduct
+                ? 'Atualize os dados do produto e da variante principal.'
+                : 'Cadastre os dados comerciais, a variante e o saldo inicial.'}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -219,36 +382,146 @@ export default function ProductInventoryManager({
               label="Nome do produto"
               name="name"
               required
+              defaultValue={editingProduct?.name}
               placeholder="Ex.: Camiseta essencial"
             />
             <Field
               label="SKU"
               name="sku"
               required
+              defaultValue={editingProduct?.variants[0]?.sku}
               placeholder="CAM-ESS-PTO-M"
             />
-            <Field
+            <CatalogCombobox
               label="Categoria"
-              name="category"
-              placeholder="Ex.: Camisetas"
+              name="categoryId"
+              resource="categories"
+              options={catalogOptions.categories}
+              defaultOption={editingProduct?.category}
+              placeholder="Busque ou cadastre uma categoria"
+              onCreated={(option) =>
+                registerCatalogOption('categories', option)
+              }
             />
-            <Field label="Marca" name="brand" placeholder="Nome da marca" />
+            <label className="block text-xs font-medium text-[#56625c] sm:col-span-2">
+              Descrição
+              <textarea
+                name="description"
+                maxLength={10000}
+                defaultValue={editingProduct?.description ?? ''}
+                rows={3}
+                className="mt-2 w-full resize-y border border-[#dce2dc] bg-white px-3 py-2 text-sm font-normal text-[#303a36] outline-none focus:border-[#58806e] focus:ring-2 focus:ring-[#58806e]/15"
+              />
+            </label>
+            <CatalogCombobox
+              label="Marca"
+              name="brandId"
+              resource="brands"
+              options={catalogOptions.brands}
+              defaultOption={editingProduct?.brand}
+              placeholder="Busque ou cadastre uma marca"
+              onCreated={(option) => registerCatalogOption('brands', option)}
+            />
+            <CatalogCombobox
+              label="Variação (cor)"
+              name="variationId"
+              resource="variations"
+              options={catalogOptions.variations}
+              defaultOption={editingProduct?.variation}
+              placeholder="Busque ou cadastre uma variação"
+              onCreated={(option) =>
+                registerCatalogOption('variations', option)
+              }
+            />
             <Field
               label="Código de barras"
               name="barcode"
+              defaultValue={editingProduct?.variants[0]?.barcode ?? ''}
               placeholder="EAN / GTIN"
             />
             <Field
-              label="Variação"
+              label="Rótulo da variante"
               name="variantLabel"
+              defaultValue={editingProduct?.variants[0]?.label ?? ''}
               placeholder="Ex.: Preto / M"
             />
-            <Field
-              label="Imagem (URL)"
-              name="image"
-              type="url"
-              placeholder="https://exemplo.com/imagem.jpg"
-            />
+            <label className="block text-xs font-medium text-[#56625c] sm:col-span-2">
+              Imagem do produto (JPEG, PNG ou WebP; até 2 MB)
+              <span className="mt-2 flex min-h-10 items-center gap-3 border border-[#dce2dc] bg-white px-3 py-2">
+                <ImagePlus size={17} aria-hidden="true" />
+                <input
+                  name="image"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  aria-label="Enviar imagem do produto"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                      setSelectedImage(null);
+                      setNotice({
+                        text: 'A imagem deve ter no máximo 2 MB.',
+                        error: true,
+                      });
+                      event.currentTarget.value = '';
+                      return;
+                    }
+                    if (
+                      !['image/jpeg', 'image/png', 'image/webp'].includes(
+                        file.type
+                      )
+                    ) {
+                      setSelectedImage(null);
+                      setNotice({
+                        text: 'Use uma imagem JPEG, PNG ou WebP.',
+                        error: true,
+                      });
+                      event.currentTarget.value = '';
+                      return;
+                    }
+                    setSelectedImage(file);
+                    setRemoveImage(false);
+                    void readImageAsDataUrl(file)
+                      .then(setImagePreview)
+                      .catch(() =>
+                        setNotice({
+                          text: 'Não foi possível ler o arquivo de imagem.',
+                          error: true,
+                        })
+                      );
+                  }}
+                  className="min-w-0 flex-1 text-xs font-normal text-[#68736e] file:mr-3 file:border-0 file:bg-[#edf2ed] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[#315b4e]"
+                />
+              </span>
+              {imagePreview && (
+                <span className="mt-2 flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imagePreview}
+                    alt="Pré-visualização da imagem do produto"
+                    className="size-16 rounded border border-[#dce2dc] object-cover"
+                  />
+                  <span className="font-normal text-[#68736e]">
+                    {editingProduct
+                      ? 'A imagem atual será mantida se nenhum arquivo novo for selecionado.'
+                      : 'Pré-visualização'}
+                  </span>
+                </span>
+              )}
+              {editingProduct?.image && imagePreview && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImagePreview(null);
+                    setSelectedImage(null);
+                    setRemoveImage(true);
+                  }}
+                  className="mt-2 text-xs font-medium text-[#9b3f2b] underline underline-offset-2"
+                >
+                  Remover imagem atual
+                </button>
+              )}
+            </label>
             <Field
               label="Custo unitário (R$)"
               name="costPrice"
@@ -256,6 +529,11 @@ export default function ProductInventoryManager({
               min="0"
               step="0.01"
               required
+              defaultValue={
+                editingProduct
+                  ? String(editingProduct.variants[0]?.costPrice ?? '')
+                  : undefined
+              }
             />
             <Field
               label="Preço de venda (R$)"
@@ -264,41 +542,57 @@ export default function ProductInventoryManager({
               min="0"
               step="0.01"
               required
+              defaultValue={
+                editingProduct
+                  ? String(editingProduct.variants[0]?.salePrice ?? '')
+                  : undefined
+              }
             />
-            <Field
-              label="Estoque inicial"
-              name="initialStock"
-              type="number"
-              min="0"
-              step="1"
-              defaultValue="0"
-              required
-            />
+            {!editingProduct && (
+              <Field
+                label="Estoque inicial"
+                name="initialStock"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue="0"
+                required
+              />
+            )}
             <Field
               label="Ponto de reposição"
               name="reorderPoint"
               type="number"
               min="0"
               step="1"
-              defaultValue="5"
+              defaultValue={String(
+                editingProduct?.variants[0]?.inventory?.reorderPoint ?? 5
+              )}
               required
             />
             <label className="block text-xs font-medium text-[#56625c]">
               Status do produto
               <select
                 name="status"
-                defaultValue="ACTIVE"
+                defaultValue={editingProduct?.status ?? 'ACTIVE'}
                 className="mt-2 h-10 w-full border border-[#dce2dc] bg-white px-3 text-sm font-normal text-[#303a36] outline-none focus:border-[#58806e] focus:ring-2 focus:ring-[#58806e]/15"
               >
                 <option value="ACTIVE">Ativo</option>
                 <option value="DRAFT">Rascunho</option>
+                {editingProduct && <option value="ARCHIVED">Inativo</option>}
               </select>
             </label>
           </div>
           <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[#e8ece8] pt-4">
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setEditingProduct(null);
+                setImagePreview(null);
+                setSelectedImage(null);
+                setRemoveImage(false);
+              }}
               className="h-9 border border-[#dce2dc] px-4 text-xs font-medium text-[#56625c] hover:bg-[#f3f5f2]"
             >
               Cancelar
@@ -308,7 +602,7 @@ export default function ProductInventoryManager({
               className="inline-flex h-9 items-center gap-2 bg-[#183c35] px-4 text-xs font-medium text-white hover:bg-[#28584c] disabled:opacity-60"
             >
               {saving && <RefreshCw size={14} className="animate-spin" />}
-              Salvar produto
+              {editingProduct ? 'Salvar alterações' : 'Salvar produto'}
             </button>
           </div>
         </form>
@@ -348,11 +642,12 @@ export default function ProductInventoryManager({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[870px] text-left text-xs">
+            <table className="w-full min-w-[1080px] text-left text-xs">
               <thead className="bg-[#f6f8f5] text-[10px] uppercase tracking-[0.08em] text-[#89938e]">
                 <tr>
                   <th className="px-5 py-3 font-medium">Produto</th>
                   <th className="px-4 py-3 font-medium">SKU / variante</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 text-right font-medium">Custo</th>
                   <th className="px-4 py-3 text-right font-medium">Preço</th>
                   <th className="px-4 py-3 text-right font-medium">
@@ -361,12 +656,12 @@ export default function ProductInventoryManager({
                   <th className="px-4 py-3 text-right font-medium">
                     Reposição
                   </th>
-                  <th className="px-5 py-3 text-right font-medium">Ajuste</th>
+                  <th className="px-5 py-3 text-right font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {visibleProducts.flatMap((product) =>
-                  product.variants.map((variant) => {
+                  product.variants.map((variant, variantIndex) => {
                     const inventory = variant.inventory;
                     const available = inventory
                       ? inventory.onHand - inventory.reserved
@@ -384,7 +679,13 @@ export default function ProductInventoryManager({
                             {product.name}
                           </p>
                           <p className="mt-1 text-[10px] text-[#89938e]">
-                            {product.category || 'Sem categoria'}
+                            {[
+                              product.category?.name,
+                              product.brand?.name,
+                              product.variation?.name,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ') || 'Sem classificação'}
                           </p>
                         </td>
                         <td className="px-4 py-4 text-[#68736e]">
@@ -392,6 +693,23 @@ export default function ProductInventoryManager({
                           <p className="mt-1 text-[10px] text-[#89938e]">
                             {variant.label || 'Padrão'}
                           </p>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex px-2 py-1 text-[10px] font-medium ${
+                              product.status === 'ACTIVE'
+                                ? 'bg-[#eff7f0] text-[#376a58]'
+                                : product.status === 'ARCHIVED'
+                                  ? 'bg-[#f2eeee] text-[#8d5550]'
+                                  : 'bg-[#f4f1e8] text-[#8a7140]'
+                            }`}
+                          >
+                            {product.status === 'ACTIVE'
+                              ? 'Ativo'
+                              : product.status === 'ARCHIVED'
+                                ? 'Inativo'
+                                : 'Rascunho'}
+                          </span>
                         </td>
                         <td className="px-4 py-4 text-right text-[#68736e]">
                           {currency.format(Number(variant.costPrice))}
@@ -418,7 +736,12 @@ export default function ProductInventoryManager({
                           <div className="inline-flex items-center gap-1">
                             <button
                               type="button"
-                              disabled={saving || !inventory || available <= 0}
+                              disabled={
+                                saving ||
+                                product.status === 'ARCHIVED' ||
+                                !inventory ||
+                                available <= 0
+                              }
                               onClick={() =>
                                 beginAdjustment(variant.id, product.name, -1)
                               }
@@ -430,7 +753,11 @@ export default function ProductInventoryManager({
                             </button>
                             <button
                               type="button"
-                              disabled={saving || !inventory}
+                              disabled={
+                                saving ||
+                                product.status === 'ARCHIVED' ||
+                                !inventory
+                              }
                               onClick={() =>
                                 beginAdjustment(variant.id, product.name, 1)
                               }
@@ -440,6 +767,56 @@ export default function ProductInventoryManager({
                             >
                               +
                             </button>
+                            {variantIndex === 0 && (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={saving}
+                                  onClick={() => {
+                                    setEditingProduct(product);
+                                    setImagePreview(product.image);
+                                    setSelectedImage(null);
+                                    setRemoveImage(false);
+                                    setShowForm(true);
+                                  }}
+                                  aria-label={`Editar ${product.name}`}
+                                  title="Editar produto"
+                                  className="ml-1 flex h-7 items-center gap-1 border border-[#dce2dc] px-2 text-[#315b4e] hover:bg-[#eff5f0] disabled:opacity-40"
+                                >
+                                  <Pencil size={13} aria-hidden="true" />
+                                  <span>Editar</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={saving}
+                                  onClick={() =>
+                                    void updateProductStatus(product)
+                                  }
+                                  aria-label={
+                                    product.status === 'ARCHIVED'
+                                      ? `Reativar ${product.name}`
+                                      : `Inativar ${product.name}`
+                                  }
+                                  title={
+                                    product.status === 'ARCHIVED'
+                                      ? 'Reativar produto'
+                                      : 'Inativar produto'
+                                  }
+                                  className="flex h-7 items-center gap-1 border border-[#dce2dc] px-2 text-[#68736e] hover:bg-[#f3f5f2] disabled:opacity-40"
+                                >
+                                  {product.status === 'ARCHIVED' ? (
+                                    <RotateCcw size={13} aria-hidden="true" />
+                                  ) : (
+                                    <Archive size={13} aria-hidden="true" />
+                                  )}
+                                  <span>
+                                    {product.status === 'ARCHIVED'
+                                      ? 'Reativar'
+                                      : 'Inativar'}
+                                  </span>
+                                </button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -548,4 +925,17 @@ function Field({
       />
     </label>
   );
+}
+
+function readImageAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      typeof reader.result === 'string'
+        ? resolve(reader.result)
+        : reject(new Error('Não foi possível ler o arquivo de imagem.'));
+    reader.onerror = () =>
+      reject(new Error('Não foi possível ler o arquivo de imagem.'));
+    reader.readAsDataURL(file);
+  });
 }
