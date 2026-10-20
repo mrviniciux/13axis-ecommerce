@@ -10,7 +10,6 @@ import {
   Menu,
   MoreVertical,
   Search,
-  ShoppingCart,
   Truck,
   X,
 } from 'lucide-react';
@@ -19,19 +18,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { localeOptions } from '@/config/i18n';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import NavMenu from '@/components/NavMenu';
 import { ListItem } from '@/components/NavMenu/NavMenu';
 import { Button } from '../ui/button';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/components/ThemeProvider';
 import { useCartStore } from '@/lib/cart-store';
+import LanguageSelect from '../LanguageSelect';
+import CartButton from '../CartButton';
+import OverflowMenu from './OverflowMenu';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -44,12 +39,6 @@ const quickLinks: {
   { id: 'tracking', label: 'tracking', icon: Truck },
   { id: 'account', label: 'account', icon: CircleUserRound },
 ];
-
-type LocaleOption = (typeof localeOptions)[number]['value'];
-
-function isLocaleOption(value: string): value is LocaleOption {
-  return localeOptions.some((option) => option.value === value);
-}
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -104,165 +93,9 @@ function BrandLink({
   );
 }
 
-type CartButtonProps = {
-  quantity: number;
-  label: string;
-  onClick: ComponentProps<typeof Button>['onClick'];
-  compact?: boolean;
-};
-
-function CartButton({
-  quantity,
-  label,
-  onClick,
-  compact = false,
-}: CartButtonProps) {
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className={`relative shrink-0 ${compact ? '' : 'size-11'}`}
-      onClick={onClick}
-      aria-label={label}
-    >
-      <ShoppingCart
-        aria-hidden="true"
-        className={compact ? 'size-5' : 'size-6'}
-      />
-      <span
-        className={`absolute -top-0.5 -right-1 flex items-center justify-center rounded-full bg-foreground font-semibold text-background ${
-          compact ? 'size-4 text-[9px]' : 'size-5 text-[10px]'
-        }`}
-      >
-        {quantity}
-      </span>
-    </Button>
-  );
-}
-
-type LanguageSelectProps = {
-  locale: string;
-  label: string;
-  options: { value: LocaleOption; label: string; flag: string }[];
-  onValueChange: (value: string | null) => void;
-  className?: string;
-};
-
-function LanguageSelect({
-  locale,
-  label,
-  options,
-  onValueChange,
-  className,
-}: LanguageSelectProps) {
-  return (
-    <Select value={locale} onValueChange={onValueChange}>
-      <SelectTrigger aria-label={label} className={className}>
-        <SelectValue>
-          {(value: string | null) => {
-            const selectedOption = options.find((o) => o.value === value);
-            return selectedOption ? (
-              <>
-                <span aria-hidden="true">{selectedOption.flag}</span>
-                <span className="sr-only">{selectedOption.label}</span>
-              </>
-            ) : null;
-          }}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            aria-label={option.label}
-            title={option.label}
-          >
-            <span aria-hidden="true">{option.flag}</span>
-            <span className="sr-only">{option.label}</span>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-/**
- * Compact overflow menu used in the tablet breakpoint (md–lg).
- * Shows theme toggle + language selector in a floating panel.
- */
-function OverflowMenu({
-  t,
-  locale,
-  languageOptions,
-  onLocaleChange,
-}: {
-  t: ReturnType<typeof useTranslations<'navbar'>>;
-  locale: string;
-  languageOptions: { value: LocaleOption; label: string; flag: string }[];
-  onLocaleChange: (v: string | null) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={t('moreOptions')}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <MoreVertical aria-hidden="true" className="size-5" />
-      </Button>
-
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-border bg-background p-3 shadow-lg">
-          {/* Theme row */}
-          <div className="flex items-center justify-between gap-2 pb-2 border-b border-border mb-2">
-            <span className="text-sm text-muted-foreground">{t('theme')}</span>
-            <ThemeToggle
-              variant="icon"
-              lightLabel={t('themeLight')}
-              darkLabel={t('themeDark')}
-            />
-          </div>
-          {/* Language */}
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm text-muted-foreground">
-              {t('language')}
-            </span>
-            <LanguageSelect
-              locale={locale}
-              label={t('language')}
-              options={languageOptions}
-              onValueChange={(v) => {
-                onLocaleChange(v);
-                setOpen(false);
-              }}
-              className="w-24"
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Navbar ──────────────────────────────────────────────────────────────────
+
+export type LocaleOption = (typeof localeOptions)[number]['value'];
 
 function Navbar() {
   const t = useTranslations('navbar');
@@ -273,6 +106,10 @@ function Navbar() {
   const quantity = useCartStore((state) => state.quantity);
   const addItem = useCartStore((state) => state.addItem);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  function isLocaleOption(value: string): value is LocaleOption {
+    return localeOptions.some((option) => option.value === value);
+  }
 
   function handleLocaleChange(value: string | null) {
     if (value && isLocaleOption(value)) {

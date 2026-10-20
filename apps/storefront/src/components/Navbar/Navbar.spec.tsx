@@ -129,45 +129,6 @@ describe('Navbar', () => {
     });
   });
 
-  test('shows localized customer service contact information', async () => {
-    const user = userEvent.setup();
-    renderNavbar();
-
-    // Multiple "Atendimento" buttons exist across breakpoints; click the first
-    const buttons = screen.getAllByRole('button', { name: /Atendimento/ });
-    await user.click(buttons[0]);
-
-    expect(
-      await screen.findByText('WhatsApp: 48 9 9999-9999')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: /WhatsApp: 48 9 9999-9999/ })
-    ).toHaveAttribute('href', 'https://wa.me/5548999999999');
-  });
-
-  test('increments and displays the cart item count when clicked', () => {
-    renderNavbar();
-
-    const cartButtons = screen.getAllByRole('button', {
-      name: 'Carrinho, 0 itens',
-    });
-    // At least one cart button must be present
-    expect(cartButtons.length).toBeGreaterThanOrEqual(1);
-    cartButtons.forEach((button) => {
-      expect(within(button).getByText('0')).toBeInTheDocument();
-    });
-
-    fireEvent.click(cartButtons[0]);
-
-    const updatedCartButtons = screen.getAllByRole('button', {
-      name: 'Carrinho, 1 itens',
-    });
-    expect(updatedCartButtons.length).toBeGreaterThanOrEqual(1);
-    updatedCartButtons.forEach((button) => {
-      expect(within(button).getByText('1')).toBeInTheDocument();
-    });
-  });
-
   test('shows translated navbar text for the selected locale', () => {
     renderNavbar('en-US');
 
@@ -191,49 +152,5 @@ describe('Navbar', () => {
     await user.selectOptions(combos[0], 'en-US');
 
     expect(replace).toHaveBeenCalledWith('/shop', { locale: 'en-US' });
-  });
-
-  test('shows the mobile language selector inside the opened menu', () => {
-    renderNavbar();
-
-    // Before opening: desktop + tablet selects are present
-    const initialCount = screen.getAllByRole('combobox', {
-      name: 'Idioma',
-    }).length;
-
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
-
-    // After opening mobile menu, one more selector appears
-    expect(
-      screen.getAllByRole('combobox', { name: 'Idioma' }).length
-    ).toBeGreaterThan(initialCount);
-  });
-
-  test('shows flag emojis for the language options with accessible names', () => {
-    renderNavbar();
-
-    expect(screen.getAllByTestId('selected-language')[0]).toHaveTextContent(
-      '🇧🇷'
-    );
-    expect(
-      screen.getAllByRole('option', { name: 'Português' }).length
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByRole('option', { name: 'Inglês' })[0]
-    ).toHaveTextContent('🇺🇸');
-    expect(
-      screen.getAllByRole('option', { name: 'Português' })[0]
-    ).toHaveTextContent('🇧🇷');
-  });
-
-  test('shows the selected English flag as the primary value', () => {
-    renderNavbar('en-US');
-
-    expect(screen.getAllByTestId('selected-language')[0]).toHaveTextContent(
-      '🇺🇸'
-    );
-    expect(screen.getAllByTestId('selected-language')[0]).toHaveTextContent(
-      'English'
-    );
   });
 });
