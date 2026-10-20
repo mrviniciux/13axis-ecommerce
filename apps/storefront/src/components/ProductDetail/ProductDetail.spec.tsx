@@ -2,8 +2,17 @@ import { NextIntlClientProvider } from 'next-intl';
 import { fireEvent, render, screen } from '@testing-library/react';
 import ptBR from '@/i18n/messages/pt-BR.json';
 import { useCartStore } from '@/lib/cart-store';
-import { products } from '@/lib/products';
 import ProductDetail from './ProductDetail';
+
+const mockProduct = {
+  id: 'urban-black',
+  name: 'Camiseta urbana preta',
+  image:
+    'https://images.unsplash.com/photo-1627225924765-552d49cf47ad?auto=format&fit=crop&w=800&q=80',
+  price: 109.9,
+  color: 'black',
+  sizes: ['M', 'G', 'GG'],
+};
 
 describe('ProductDetail', () => {
   beforeEach(() => {
@@ -17,7 +26,7 @@ describe('ProductDetail', () => {
   function renderProductDetail() {
     return render(
       <NextIntlClientProvider locale="pt-BR" messages={ptBR}>
-        <ProductDetail product={products[7]} />
+        <ProductDetail product={mockProduct} />
       </NextIntlClientProvider>
     );
   }

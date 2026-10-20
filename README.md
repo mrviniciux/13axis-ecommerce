@@ -7,10 +7,10 @@ the differences between Server and Client Components.
 
 <img width="1072" height="932" alt="Storefront screenshot" src="https://github.com/user-attachments/assets/a1923126-592a-4f89-94b9-f6bea49a8339" />
 
-This is a learning project, not a production store. The catalog is hard-coded,
-and there is no product API, database, authentication, real cart persistence,
-checkout, payment processing, inventory, shipping, or order management. The
-cart counter is local demo state.
+This is a learning project, not a production store. The storefront catalog and
+cart counter remain demo data. The administrative area uses MySQL for accounts,
+products, inventory balances, and an auditable stock movement ledger. Sales
+figures on its dashboard are illustrative, not connected to orders or payments.
 
 ## What You Can Explore
 
@@ -60,6 +60,11 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). Portuguese (Brazil) is the
 default locale at `/br`; English (United States) is available at `/us`.
+
+The standalone `pnpm dev` command starts Next.js only. The admin routes also
+require a reachable MySQL database, applied Prisma migrations, and `AUTH_SECRET`.
+Use the Docker Compose setup below for a complete local environment; it starts
+the database and storefront together.
 
 You can also run an Nx target directly:
 
@@ -182,3 +187,34 @@ Build the static Storybook:
 ```bash
 pnpm build-storybook
 ```
+
+Copy `.env.example` to `.env`, change the local database passwords, and leave
+`ADMIN_EMAIL` blank for unrestricted first-user bootstrap in local development.
+Start the development environment with hot reload; Compose starts MySQL, applies
+versioned migrations, then starts the storefront:
+
+```bash
+docker compose up --build
+```
+
+On local Compose, the first registration at `/restrict/admin/login` becomes the
+administrator; later registrations do not receive administrative access. In
+production, set `ADMIN_EMAIL` to the intended administrator before startup;
+only that address can claim the first account, including through Google. Google
+sign-in is optional; configure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in
+`.env` and register `http://localhost:3000/api/auth/callback/google` as the
+OAuth callback in Google Cloud. Use a unique `AUTH_SECRET` outside local
+development.
+
+Product variants have unique SKUs and optional barcodes, cost and sale prices,
+attributes, and a linked inventory balance. Stock counts track physical units,
+reservations, and reorder points separately; every manual adjustment requires
+a reason and creates an auditable movement record. Integration channels and
+external SKU/product mappings are modeled for future marketplace sync. No
+external platform is connected yet.
+
+Production requires `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD`, `AUTH_SECRET`, and
+`ADMIN_EMAIL` in `.env`; replace the example admin address with the real
+administrator account. Google OAuth credentials are optional. The MySQL data
+volume is named `mysql_data`; back it up independently before deployment or
+upgrades.

@@ -1,9 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { products } from '@/lib/products';
 import { Link } from '@/i18n/routing';
 
 const colors = ['black', 'blue', 'gray', 'green', 'pink', 'white'] as const;
@@ -18,13 +17,39 @@ const colorValues: Record<(typeof colors)[number], string> = {
   white: '#ffffff',
 };
 
+interface ProductFromApi {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  color: string;
+  sizes: string[];
+}
+
 function ProductListing() {
   const t = useTranslations('products');
   const locale = useLocale();
+  const [products, setProducts] = useState<ProductFromApi[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [minimumPrice, setMinimumPrice] = useState('');
   const [maximumPrice, setMaximumPrice] = useState('');
+
+  useEffect(() => {
+    async function fetchProducts() {
+      const params = new URLSearchParams();
+      if (minimumPrice) params.set('minPrice', minimumPrice);
+      if (maximumPrice) params.set('maxPrice', maximumPrice);
+
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const data = await response.json();
+      setProducts(data.products || []);
+      setLoading(false);
+    }
+
+    fetchProducts();
+  }, [minimumPrice, maximumPrice]);
 
   const filteredProducts = useMemo(() => {
     const min = minimumPrice === '' ? null : Number(minimumPrice);
@@ -39,7 +64,7 @@ function ProductListing() {
         (min === null || product.price >= min) &&
         (max === null || product.price <= max)
     );
-  }, [maximumPrice, minimumPrice, selectedColors, selectedSizes]);
+  }, [maximumPrice, minimumPrice, products, selectedColors, selectedSizes]);
 
   const currency = new Intl.NumberFormat(
     locale === 'pt-BR' ? 'pt-BR' : 'en-US',
@@ -202,7 +227,11 @@ function ProductListing() {
             </fieldset>
           </aside>
 
-          {filteredProducts.length > 0 ? (
+          {loading ? (
+            <div className="flex min-h-56 items-center justify-center">
+              <p className="text-muted-foreground">Carregando produtos...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4">
               {filteredProducts.map((product) => (
                 <article
@@ -218,8 +247,8 @@ function ProductListing() {
                   >
                     <div className="relative aspect-[4/5] overflow-hidden bg-muted">
                       <Image
-                        src={product.image}
-                        alt={t('imageAlt', { name: t(`items.${product.id}`) })}
+                        src={product.image || '/placeholder.svg'}
+                        alt={t('imageAlt', { name: product.name })}
                         fill
                         sizes="(max-width: 640px) 45vw, (max-width: 1280px) 28vw, 240px"
                         className="object-cover transition-transform duration-300 hover:scale-105"
@@ -227,13 +256,13 @@ function ProductListing() {
                     </div>
                     <div className="p-3 sm:p-4">
                       <h2 className="line-clamp-2 min-h-10 text-sm font-medium leading-5 sm:text-base">
-                        {t(`items.${product.id}`)}
+                        {product.name}
                       </h2>
                       <p className="mt-2 text-base font-semibold sm:text-lg">
                         {currency.format(product.price)}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {t(`colors.${product.color}`)}
+                        {product.color}
                         <span aria-hidden="true"> · </span>
                         {t('availableSizes', {
                           sizes: product.sizes.join(', '),

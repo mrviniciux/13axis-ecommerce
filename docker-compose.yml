@@ -1,5 +1,61 @@
 services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-axis_store}
+      MYSQL_USER: ${MYSQL_USER:-axis_admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-axis_local_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-axis_local_root_password}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  migrate:
+    image: 13axis-ecommerce:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-axis_admin}:${MYSQL_PASSWORD:-axis_local_password}@db:3306/${MYSQL_DATABASE:-axis_store}
+    working_dir: /app/apps/storefront
+    command: ["pnpm", "exec", "prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  seed:
+    image: 13axis-ecommerce:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: deps
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER:-axis_admin}:${MYSQL_PASSWORD:-axis_local_password}@db:3306/${MYSQL_DATABASE:-axis_store}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/storefront/node_modules
+    working_dir: /app/apps/storefront
+    command:
+      [
+        "sh",
+        "-c",
+        "pnpm db:generate && pnpm exec ts-node --compiler-options '{\"module\":\"CommonJS\",\"moduleResolution\":\"Node\"}' scripts/seed-products.ts",
+      ]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   web:
+    image: 13axis-ecommerce:dev
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,9 +64,31 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
+      DATABASE_URL: mysql://${MYSQL_USER:-axis_admin}:${MYSQL_PASSWORD:-axis_local_password}@db:3306/${MYSQL_DATABASE:-axis_store}
+      AUTH_SECRET: ${AUTH_SECRET:-local-development-secret-change-before-deploy-please}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      AUTH_TRUST_HOST: "true"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/apps/storefront/node_modules
       - /app/apps/storefront/.next
     working_dir: /app/apps/storefront
-    command: ["pnpm", "exec", "next", "dev", "--hostname", "0.0.0.0"]
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      seed:
+        condition: service_completed_successfully
+    command:
+      [
+        "sh",
+        "-c",
+        "pnpm db:generate && pnpm exec next dev --hostname 0.0.0.0",
+      ]
+
+volumes:
+  mysql_data:

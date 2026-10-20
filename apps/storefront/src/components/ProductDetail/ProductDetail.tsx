@@ -6,9 +6,17 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ArrowLeft, Check, ShoppingBag } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { useCartStore } from '@/lib/cart-store';
-import { products, type Product } from '@/lib/products';
 
-function ProductDetail({ product }: { product: Product }) {
+interface ProductFromApi {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  color: string;
+  sizes: string[];
+}
+
+function ProductDetail({ product }: { product: ProductFromApi }) {
   const t = useTranslations('products');
   const locale = useLocale();
   const addItem = useCartStore((state) => state.addItem);
@@ -16,12 +24,11 @@ function ProductDetail({ product }: { product: Product }) {
   const [showSizeError, setShowSizeError] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const productName = t(`items.${product.id}`);
+  const productName = product.name;
   const currency = new Intl.NumberFormat(
     locale === 'pt-BR' ? 'pt-BR' : 'en-US',
     { style: 'currency', currency: 'BRL' }
   );
-  const relatedProducts = products.filter((item) => item.id !== product.id);
 
   function handleAddToCart() {
     if (!selectedSize) {
@@ -238,47 +245,6 @@ function ProductDetail({ product }: { product: Product }) {
               </p>
             </section>
           </div>
-
-          <section
-            aria-labelledby="related-products-title"
-            className="rounded-lg border border-border bg-background p-5 sm:p-7"
-          >
-            <h2 id="related-products-title" className="text-xl font-semibold">
-              {t('detail.relatedProducts')}
-            </h2>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              {relatedProducts.slice(0, 4).map((relatedProduct) => (
-                <Link
-                  key={relatedProduct.id}
-                  href={{
-                    pathname: '/products/[productId]',
-                    params: { productId: relatedProduct.id },
-                  }}
-                  className="group overflow-hidden rounded-md border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden bg-muted">
-                    <Image
-                      src={relatedProduct.image}
-                      alt={t('imageAlt', {
-                        name: t(`items.${relatedProduct.id}`),
-                      })}
-                      fill
-                      sizes="(max-width: 640px) 40vw, 180px"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <p className="line-clamp-2 min-h-10 text-sm font-medium">
-                      {t(`items.${relatedProduct.id}`)}
-                    </p>
-                    <p className="mt-2 text-sm font-semibold">
-                      {currency.format(relatedProduct.price)}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
         </div>
       </div>
     </main>
