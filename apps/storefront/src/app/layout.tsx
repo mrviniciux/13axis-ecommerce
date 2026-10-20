@@ -3,6 +3,7 @@ import { Montserrat } from 'next/font/google';
 
 import '../styles/globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import QueryProvider from '@/components/QueryProvider';
 import { defaultLocale } from '@/config/i18n';
 
 const montserrat = Montserrat({
@@ -43,7 +44,9 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
