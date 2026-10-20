@@ -9,10 +9,10 @@ Importante: trate esses itens como contexto de domínio, não como funcionalidad
 ## Arquitetura atual
 
 - Next.js 15 com App Router, React 18 e TypeScript.
-- Rotas da aplicação ficam em `src/app/[locale]`.
-- `next-intl` fornece localização: português (`pt-BR`, prefixo `/br`) e inglês (`en-US`, prefixo `/us`). Mensagens ficam em `src/i18n/messages`.
-- Componentes compartilhados ficam em `src/components`; componentes de interface reutilizáveis ficam em `src/components/ui`.
-- Tailwind CSS 4 é usado para estilos utilitários. Tokens e estilos globais ficam em `src/styles/globals.css`; preserve as variáveis CSS existentes ao alterar o tema.
+- O storefront fica no projeto Nx `apps/storefront`; suas rotas ficam em `apps/storefront/src/app/[locale]`.
+- `next-intl` fornece localização: português (`pt-BR`, prefixo `/br`) e inglês (`en-US`, prefixo `/us`). Mensagens ficam em `apps/storefront/src/i18n/messages`.
+- Componentes compartilhados ficam em `apps/storefront/src/components`; componentes de interface reutilizáveis ficam em `apps/storefront/src/components/ui`.
+- Tailwind CSS 4 é usado para estilos utilitários. Tokens e estilos globais ficam em `apps/storefront/src/styles/globals.css`; preserve as variáveis CSS existentes ao alterar o tema.
 - A fonte global Montserrat é configurada pelo `next/font` no layout localizado.
 - Os componentes devem manter comportamento responsivo, acessibilidade por teclado e rótulos acessíveis para controles interativos.
 
@@ -20,8 +20,8 @@ Importante: trate esses itens como contexto de domínio, não como funcionalidad
 
 - Antes de adicionar uma funcionalidade de e-commerce, verifique se existem modelos, serviços ou integrações relacionados. Não invente endpoints, dados de produtos, regras comerciais ou comportamento de pagamento.
 - Mantenha textos da interface localizáveis e siga os idiomas já configurados.
-- Reutilize os componentes existentes em `src/components/ui` e os padrões locais de composição antes de introduzir dependências ou abstrações.
-- Componentes em `src/components/<Nome>/` seguem o padrão `<Nome>.tsx`, `<Nome>.spec.tsx` e `index.ts`. O gerador está disponível por `pnpm create:component NomeDoComponente`.
+- Reutilize os componentes existentes em `apps/storefront/src/components/ui` e os padrões locais de composição antes de introduzir dependências ou abstrações.
+- Componentes em `apps/storefront/src/components/<Nome>/` seguem o padrão `<Nome>.tsx`, `<Nome>.spec.tsx` e `index.ts`. O gerador está disponível por `pnpm create:component NomeDoComponente`.
 - Preserve alterações locais preexistentes no workspace ao trabalhar em arquivos modificados.
 
 ## Verificação

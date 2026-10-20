@@ -1,0 +1,90 @@
+{
+  "welcome": "Welcome",
+  "products": {
+    "eyebrow": "Curated selection",
+    "title": "T-shirts for every day",
+    "resultCount": "{count, plural, one {# product} other {# products}}",
+    "filters": "Filters",
+    "clearFilters": "Clear",
+    "color": "Color",
+    "size": "Size",
+    "price": "Price (R$)",
+    "minimumPrice": "Min",
+    "maximumPrice": "Max",
+    "availableSizes": "Sizes: {sizes}",
+    "imageAlt": "{name} t-shirt",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Try changing or clearing the selected filters.",
+    "colors": {
+      "black": "Black",
+      "blue": "Blue",
+      "gray": "Gray",
+      "green": "Green",
+      "brown": "Brown",
+      "white": "White"
+    },
+    "items": {
+      "essential-cotton": "Essential cotton t-shirt",
+      "classic-black": "Classic black t-shirt",
+      "oversized-graphite": "Graphite oversized t-shirt",
+      "soft-pink": "Pink everyday t-shirt",
+      "navy-basic": "Navy basic t-shirt",
+      "earthy-green": "Casual green t-shirt",
+      "everyday-white": "Everyday white t-shirt",
+      "urban-black": "Urban black t-shirt"
+    },
+    "detail": {
+      "breadcrumbLabel": "Breadcrumb",
+      "backToProducts": "Back to products",
+      "category": "T-shirts",
+      "galleryLabel": "Images of {name}",
+      "imageOption": "View image {number}",
+      "priceDisclaimer": "Price per item",
+      "color": "Color",
+      "chooseSize": "Choose a size",
+      "selectedSize": "(selected: {size})",
+      "sizeRequired": "Choose a size to continue.",
+      "addToCart": "Add to cart",
+      "addedToCart": "Product added to cart.",
+      "characteristics": "Product details",
+      "availableSizesLabel": "Available sizes",
+      "description": "Description",
+      "descriptionText": "{name}: a versatile option for creating different outfits. Check the color and available sizes before adding it to your cart.",
+      "relatedProducts": "Related products"
+    }
+  },
+  "benefits": {
+    "label": "Store benefits",
+    "shipping": { "title": "Free Shipping", "subtitle": "Check conditions" },
+    "discount": { "title": "10% Discount", "subtitle": "Pay with PIX" },
+    "delivery": { "title": "Dispatch", "subtitle": "Within 24 business hours" },
+    "installments": {
+      "title": "Pay in 12x",
+      "subtitle": "Up to 5x interest-free"
+    },
+    "security": { "title": "Security", "subtitle": "Official Store" }
+  },
+  "navbar": {
+    "home": "Home",
+    "logoAlt": "Company logo",
+    "search": "What are you looking for?",
+    "quickLinks": "Quick links",
+    "support": "Customer service",
+    "contactTitle": "Contact us",
+    "contact": "WhatsApp: +55 48 9 9999-9999",
+    "tracking": "Track order",
+    "account": "My Account",
+    "cart": "Cart, {quantity} items",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainMenu": "Main menu",
+    "promotion": "PAY WITH PIX AND GET 10% OFF",
+    "language": "Language",
+    "portuguese": "Portuguese",
+    "english": "English",
+    "themeLight": "Switch to light mode",
+    "themeDark": "Switch to dark mode",
+    "theme": "Theme",
+    "moreOptions": "More options"
+  }
+}

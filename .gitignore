@@ -82,6 +82,7 @@ web_modules/
 .next
 out
 /storybook-static
+.nx
 
 # Nuxt.js build / generate output
 .nuxt
@@ -120,5 +121,8 @@ dist
 
 /test-results/
 /playwright-report/
+/apps/storefront/test-results/
+/apps/storefront/playwright-report/
+/apps/storefront/storybook-static/
 /blob-report/
 /playwright/.cache/
