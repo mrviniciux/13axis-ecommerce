@@ -89,5 +89,11 @@
     "themeDark": "Mudar para modo escuro",
     "theme": "Tema",
     "moreOptions": "Mais opções"
+  },
+  "cartDrawer": {
+    "title": "Carrinho de compras",
+    "close": "Fechar",
+    "empty": "Seu carrinho está vazio.",
+    "placeholder": "Itens e total serão exibidos aqui em breve."
   }
 }

@@ -27,6 +27,7 @@ import { useCartStore } from '@/lib/cart-store';
 import LanguageSelect from '../LanguageSelect';
 import CartButton from '../CartButton';
 import OverflowMenu from './OverflowMenu';
+import CartDrawer from '../CartDrawer';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -104,8 +105,8 @@ function Navbar() {
   const router = useRouter();
   const params = useParams<{ productId: string }>();
   const quantity = useCartStore((state) => state.quantity);
-  const addItem = useCartStore((state) => state.addItem);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
 
   function isLocaleOption(value: string): value is LocaleOption {
     return localeOptions.some((option) => option.value === value);
@@ -205,7 +206,7 @@ function Navbar() {
             <CartButton
               quantity={quantity}
               label={t('cart', { quantity })}
-              onClick={addItem}
+              onClick={() => setCartOpen(true)}
             />
           </nav>
         </div>
@@ -276,7 +277,7 @@ function Navbar() {
           <CartButton
             quantity={quantity}
             label={t('cart', { quantity })}
-            onClick={addItem}
+            onClick={() => setCartOpen(true)}
             compact
           />
           <OverflowMenu
@@ -321,7 +322,7 @@ function Navbar() {
         <CartButton
           quantity={quantity}
           label={t('cart', { quantity })}
-          onClick={addItem}
+          onClick={() => setCartOpen(true)}
           compact
         />
       </div>
@@ -380,6 +381,8 @@ function Navbar() {
           </div>
         </nav>
       )}
+
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   );
 }

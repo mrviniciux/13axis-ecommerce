@@ -86,5 +86,11 @@
     "themeDark": "Switch to dark mode",
     "theme": "Theme",
     "moreOptions": "More options"
+  },
+  "cartDrawer": {
+    "title": "Shopping cart",
+    "close": "Close",
+    "empty": "Your cart is empty.",
+    "placeholder": "Items and total will be displayed here soon."
   }
 }
