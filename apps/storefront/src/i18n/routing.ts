@@ -27,6 +27,10 @@ export const routing = defineRouting({
       'pt-BR': '/produtos/[productId]',
       'en-US': '/products/[productId]',
     },
+    '/loja/busca': {
+      'pt-BR': '/loja/busca',
+      'en-US': '/shop/search',
+    },
   },
 });
 

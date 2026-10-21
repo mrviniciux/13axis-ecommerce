@@ -9,7 +9,6 @@ import {
   type LucideIcon,
   Menu,
   MoreVertical,
-  Search,
   Truck,
   X,
 } from 'lucide-react';
@@ -17,7 +16,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from '@/i18n/routing';
 import { localeOptions } from '@/config/i18n';
-import { Input } from '@/components/ui/input';
 import NavMenu from '@/components/NavMenu';
 import { ListItem } from '@/components/NavMenu/NavMenu';
 import { Button } from '../ui/button';
@@ -28,6 +26,7 @@ import LanguageSelect from '../LanguageSelect';
 import CartButton from '../CartButton';
 import OverflowMenu from './OverflowMenu';
 import CartDrawer from '../CartDrawer';
+import SearchSuggestions from '../SearchSuggestions';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -145,16 +144,7 @@ function Navbar() {
           <BrandLink homeLabel={t('home')} logoAlt={t('logoAlt')} />
 
           <div className="relative min-w-0 flex-1 max-w-[400px]">
-            <Input
-              type="search"
-              placeholder={t('search')}
-              aria-label={t('search')}
-              className="h-11 rounded-lg pl-4 pr-10 text-sm shadow-sm"
-            />
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
+            <SearchSuggestions />
           </div>
 
           <nav
@@ -225,16 +215,7 @@ function Navbar() {
         />
 
         <div className="relative min-w-0 flex-1 max-w-[320px] mr-4">
-          <Input
-            type="search"
-            placeholder={t('search')}
-            aria-label={t('search')}
-            className="h-9 rounded-lg pl-4 pr-9 text-sm"
-          />
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
+          <SearchSuggestions className="max-w-none" />
         </div>
 
         <nav
@@ -330,16 +311,7 @@ function Navbar() {
       {/* Search bar — mobile only, full width below the header row */}
       <div className="border-b border-border px-3 py-2 md:hidden">
         <div className="relative w-full">
-          <Input
-            type="search"
-            placeholder={t('search')}
-            aria-label={t('search')}
-            className="h-9 w-full rounded-lg pl-4 pr-9 text-sm"
-          />
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
+          <SearchSuggestions className="max-w-none" />
         </div>
       </div>
 

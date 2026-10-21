@@ -95,5 +95,16 @@
     "close": "Fechar",
     "empty": "Seu carrinho está vazio.",
     "placeholder": "Itens e total serão exibidos aqui em breve."
+  },
+  "search": {
+    "suggestions": "Sugestão",
+    "products": "Produtos",
+    "searchResults": "Resultados para a busca: {query}",
+    "noResults": "Nenhum produto encontrado",
+    "sortBy": "Ordenar por:",
+    "sortRelevance": "Relevância",
+    "sortPriceAsc": "Menor preço",
+    "sortPriceDesc": "Maior preço",
+    "tryOtherFilters": "Tente alterar ou limpar os filtros selecionados."
   }
 }

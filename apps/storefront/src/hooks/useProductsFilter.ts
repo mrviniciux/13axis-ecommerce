@@ -3,14 +3,29 @@
 import { useMemo, useState } from 'react';
 import useProducts from './useProducts';
 
-function useProductsFilter() {
+function useProductsFilter(
+  initialSearch = '',
+  initialSort: 'relevance' | 'price-asc' | 'price-desc' = 'relevance'
+) {
   const [minimumPrice, setMinimumPrice] = useState('');
   const [maximumPrice, setMaximumPrice] = useState('');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [search, setSearch] = useState(initialSearch);
+  const [sort, setSort] = useState<'relevance' | 'price-asc' | 'price-desc'>(
+    initialSort
+  );
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
+
+    if (search) {
+      params.set('search', search);
+    }
+
+    if (sort !== 'relevance') {
+      params.set('sort', sort);
+    }
 
     if (selectedColors.length > 0) {
       params.set('colors', selectedColors.join(','));
@@ -29,7 +44,7 @@ function useProductsFilter() {
     }
 
     return params.toString();
-  }, [maximumPrice, minimumPrice, selectedColors, selectedSizes]);
+  }, [maximumPrice, minimumPrice, search, selectedColors, selectedSizes, sort]);
 
   const { products: filteredProducts, loading, error } = useProducts(query);
 
@@ -57,6 +72,10 @@ function useProductsFilter() {
     loading,
     error,
     hasActiveFilters,
+    search,
+    setSearch,
+    sort,
+    setSort,
     selectedColors,
     setSelectedColors,
     selectedSizes,

@@ -92,5 +92,16 @@
     "close": "Close",
     "empty": "Your cart is empty.",
     "placeholder": "Items and total will be displayed here soon."
+  },
+  "search": {
+    "suggestions": "Suggestions",
+    "products": "Products",
+    "searchResults": "Search results for: {query}",
+    "noResults": "No products found",
+    "sortBy": "Sort by:",
+    "sortRelevance": "Relevance",
+    "sortPriceAsc": "Price low to high",
+    "sortPriceDesc": "Price high to low",
+    "tryOtherFilters": "Try changing or clearing the selected filters."
   }
 }

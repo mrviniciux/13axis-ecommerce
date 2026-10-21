@@ -75,6 +75,7 @@ export async function listProducts(searchParams: URLSearchParams) {
   const minPrice = parsePrice(searchParams.get('minPrice'));
   const maxPrice = parsePrice(searchParams.get('maxPrice'));
   const search = searchParams.get('search');
+  const sort = searchParams.get('sort') ?? 'relevance';
 
   const where: Prisma.ProductWhereInput = {
     status: 'ACTIVE',
@@ -154,8 +155,18 @@ export async function listProducts(searchParams: URLSearchParams) {
     },
   });
 
+  // Ordenação por preço (aplicada no JavaScript pois o Prisma não suporta
+  // agregação _min em orderBy nesta versão).
+  const sorted = products.slice().sort((a, b) => {
+    const priceA = Number(a.variants[0]?.salePrice ?? 0);
+    const priceB = Number(b.variants[0]?.salePrice ?? 0);
+    if (sort === 'price-asc') return priceA - priceB;
+    if (sort === 'price-desc') return priceB - priceA;
+    return 0;
+  });
+
   // Transform to match the expected format for storefront components.
-  return products.map((product) => {
+  return sorted.map((product) => {
     const defaultVariant = product.variants[0];
 
     return {
