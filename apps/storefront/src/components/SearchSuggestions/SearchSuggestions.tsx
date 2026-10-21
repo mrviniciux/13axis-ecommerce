@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/routing';
+import { useRouter, usePathname, Link } from '@/i18n/routing';
 import { Search, X, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
@@ -99,12 +99,8 @@ function SearchSuggestions({ className }: SearchSuggestionsProps) {
     });
   };
 
-  const handleSelectProduct = (id: string) => {
+  const handleSelectProduct = () => {
     setOpen(false);
-    (router as any).push({
-      pathname: '/products/[productId]',
-      params: { productId: id },
-    });
   };
 
   const handleFocus = () => {
@@ -143,7 +139,7 @@ function SearchSuggestions({ className }: SearchSuggestionsProps) {
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className="h-11 rounded-lg pl-4 pr-10 text-sm shadow-sm border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="w-full h-11 rounded-lg pl-4 pr-16 text-sm shadow-sm border border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring no-search-cancel"
           aria-label={n('search')}
         />
         <Search
@@ -154,7 +150,7 @@ function SearchSuggestions({ className }: SearchSuggestionsProps) {
           <button
             type="button"
             onClick={clearSearch}
-            className="absolute top-1/2 right-3 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute top-1/2 right-10 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Limpar busca"
           >
             <X className="size-4" />
@@ -190,15 +186,16 @@ function SearchSuggestions({ className }: SearchSuggestionsProps) {
               </p>
               <div className="flex flex-col gap-2">
                 {products.map((product) => (
-                  <div
+                  <Link
                     key={product.id}
-                    onClick={() => handleSelectProduct(product.id)}
-                    className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted transition-colors cursor-pointer"
-                    role="link"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSelectProduct(product.id);
+                    href={{
+                      pathname: '/products/[productId]',
+                      params: { productId: product.id } as {
+                        productId: string;
+                      },
                     }}
+                    onClick={handleSelectProduct}
+                    className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted transition-colors block"
                   >
                     {product.image ? (
                       <Image
@@ -216,7 +213,7 @@ function SearchSuggestions({ className }: SearchSuggestionsProps) {
                     <span className="truncate text-foreground line-clamp-1">
                       {product.name}
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

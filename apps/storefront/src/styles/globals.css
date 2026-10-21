@@ -127,4 +127,13 @@
   html {
     @apply font-sans;
   }
+
+  /* Remove o botão de limpar (X) nativo do navegador no input type="search" */
+  .no-search-cancel::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .no-search-cancel::-moz-search-cancel-button {
+    appearance: none;
+  }
 }
